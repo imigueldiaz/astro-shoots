@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        />
+        <title>Number of untracked shoots calculator</title>
+        <script>
+            function getLocation() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(setPosition);
+                }
+            }
+
+            function setPosition(position) {
+                document.getElementById('latitude').value =
+                    position.coords.latitude;
+                document.getElementById('longitude').value =
+                    position.coords.longitude;
+            }
+
+            window.onload = getLocation;
+        </script>
+    </head>
+    <body>
+        <h1>Number of untracked shoots calculator</h1>
+        <form
+            action="/"
+            method="post"
+        >
+            <label for="object_name">Object Name:</label>
+            <input
+                type="text"
+                id="object_name"
+                name="object_name"
+                value="{{ request.args.get('object_name', '') }}"
+                required
+            /><br /><br />
+
+            <label for="latitude">Latitude:</label>
+            <input
+                type="number"
+                step="any"
+                id="latitude"
+                name="latitude"
+                value="{{ request.args.get('latitude', '') }}"
+                required
+            /><br /><br />
+
+            <label for="longitude">Longitude:</label>
+            <input
+                type="number"
+                step="any"
+                id="longitude"
+                name="longitude"
+                value="{{ request.args.get('longitude', '') }}"
+                required
+            /><br /><br />
+
+            <label for="sensor_height_mm">Sensor Height (mm):</label>
+            <input
+                type="number"
+                step="any"
+                id="sensor_height_mm"
+                name="sensor_height_mm"
+                value="{{ request.args.get('sensor_height_mm', '') }}"
+                required
+            /><br /><br />
+
+            <label for="sensor_width_mm">Sensor Width (mm):</label>
+            <input
+                type="number"
+                step="any"
+                id="sensor_width_mm"
+                name="sensor_width_mm"
+                value="{{ request.args.get('sensor_width_mm', '') }}"
+                required
+            /><br /><br />
+
+            <label for="focal_length">Focal Length:</label>
+            <input
+                type="number"
+                step="any"
+                id="focal_length"
+                name="focal_length"
+                value="{{ request.args.get('focal_length', '') }}"
+                required
+            /><br /><br />
+
+            <label for="shoot_interval">Shoot Interval:</label>
+            <input
+                type="number"
+                step="any"
+                id="shoot_interval"
+                name="shoot_interval"
+                value="{{ request.args.get('shoot_interval', '') }}"
+                required
+            /><br /><br />
+
+            <label for="aperture">Aperture:</label>
+            <input
+                type="number"
+                step="any"
+                id="aperture"
+                name="aperture"
+                value="{{ request.args.get('aperture', '') }}"
+                required
+            /><br /><br />
+
+            <label for="number_of_pixels_in_width"
+                >Number of Pixels in Width:</label
+            >
+            <input
+                type="number"
+                id="number_of_pixels_in_width"
+                name="number_of_pixels_in_width"
+                value="{{ request.args.get('number_of_pixels_in_width', '') }}"
+                required
+            /><br /><br />
+
+            <input
+                type="submit"
+                value="Calculate"
+            />
+        </form>
+    </body>
+</html>
