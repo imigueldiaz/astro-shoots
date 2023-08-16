@@ -1,0 +1,4 @@
+Flask==2.1.1
+astropy==5.1.0
+astroquery==0.4.6
+numpy==1.22.3
