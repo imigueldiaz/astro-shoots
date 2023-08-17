@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect, url_for
 from datetime import datetime, timedelta
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.time import Time
@@ -21,8 +21,12 @@ def format_float(value, format_spec=".2f"):
 
 app.jinja_env.filters["format_float"] = format_float
 
+@app.route("/astroshoots/", methods=["GET", "POST"])
+def index_redirect():
+    return redirect(url_for("index"))
 
-@app.route("/", methods=["GET", "POST"])
+
+@app.route("/astroshoots", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         object_name = request.form["object_name"]
