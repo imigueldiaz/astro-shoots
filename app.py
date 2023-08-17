@@ -10,18 +10,15 @@ import sys
 import logging
 import configparser
 
-app = Flask(__name__)
-
-Simbad.add_votable_fields("dim_majaxis", "dim_minaxis")
-logging.basicConfig(level=logging.INFO)
-
-# Load the configuration file
+# Read the configuration file
 config = configparser.ConfigParser()
 config.read("config.ini")
 
-# Get the route from the configuration file
+# Get the route and static_url_path from the configuration file
 route = config.get("APP", "ROUTE")
+static_url_path = config.get("APP", "STATIC_URL_PATH")
 
+app = Flask(__name__, static_url_path=static_url_path)
 
 
 def format_float(value, format_spec=".2f"):
@@ -29,6 +26,7 @@ def format_float(value, format_spec=".2f"):
 
 
 app.jinja_env.filters["format_float"] = format_float
+
 
 @app.route(f"{route}/", methods=["GET", "POST"])
 def index_redirect():
