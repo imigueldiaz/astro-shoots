@@ -8,11 +8,20 @@ import numpy as np
 from io import StringIO
 import sys
 import logging
+import configparser
 
 app = Flask(__name__)
 
 Simbad.add_votable_fields("dim_majaxis", "dim_minaxis")
 logging.basicConfig(level=logging.INFO)
+
+# Load the configuration file
+config = configparser.ConfigParser()
+config.read("config.ini")
+
+# Get the route from the configuration file
+route = config.get("APP", "ROUTE")
+
 
 
 def format_float(value, format_spec=".2f"):
@@ -21,12 +30,12 @@ def format_float(value, format_spec=".2f"):
 
 app.jinja_env.filters["format_float"] = format_float
 
-@app.route("/astroshoots/", methods=["GET", "POST"])
+@app.route(f"{route}/", methods=["GET", "POST"])
 def index_redirect():
     return redirect(url_for("index"))
 
 
-@app.route("/astroshoots", methods=["GET", "POST"])
+@app.route(route, methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         object_name = request.form["object_name"]

@@ -26,10 +26,7 @@
     </head>
     <body>
         <h1>Number of untracked shoots calculator</h1>
-        <form
-            action="/astroshoots"
-            method="post"
-        >
+        <form action="{{ url_for('index') }}" method="post">
             <label for="object_name">Object Name:</label>
             <input
                 type="text"
