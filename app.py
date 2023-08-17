@@ -10,6 +10,9 @@ import sys
 import logging
 import configparser
 
+
+Simbad.add_votable_fields("dim_majaxis", "dim_minaxis")
+
 # Read the configuration file
 config = configparser.ConfigParser()
 config.read("config.ini")
