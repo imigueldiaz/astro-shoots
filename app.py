@@ -22,6 +22,7 @@ from flask_talisman import Talisman
 import os
 from dotenv import load_dotenv
 from functools import wraps
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -60,6 +61,7 @@ csp = {
 talisman = Talisman(app, content_security_policy=csp)
 csrf = CSRFProtect(app)
 
+
 class ObjectForm(FlaskForm):
     object_name = StringField("Object Name", validators=[DataRequired()])
     latitude = FloatField("Latitude", validators=[DataRequired(), NumberRange(-90, 90)])
@@ -91,6 +93,7 @@ def format_float(value, format_spec=".2f"):
 
 app.jinja_env.filters["format_float"] = format_float
 
+
 def log_exceptions(f):
     @wraps(f)
     def wrapped(*args, **kwargs):
@@ -99,11 +102,13 @@ def log_exceptions(f):
         except Exception as e:
             app.logger.exception("An error occurred: %s", str(e))
             return "An error occurred. Please check the logs for more information.", 500
+
     return wrapped
 
-#@app.route(f"{route}/", methods=["GET", "POST"])
-#@limiter.limit("10 per minute")
-#def index_redirect():
+
+# @app.route(f"{route}/", methods=["GET", "POST"])
+# @limiter.limit("10 per minute")
+# def index_redirect():
 #    return redirect(url_for("index"))
 
 
@@ -153,6 +158,12 @@ def index():
             max_shooting_time,
             shoot_interval,
         )
+
+        if num_shoots is None:
+            return render_template(
+                "error.html",
+                error=f"Object {object_name} number of shoots could be not calculated.",
+            )
 
         return render_template(
             "result.html",
@@ -340,6 +351,10 @@ def calculate_number_of_shoots(
     exposure_time,
     shoot_interval,
 ):
+    if np.ma.is_masked(size_major) or np.ma.is_masked(size_minor):
+        app.logger.error("Size data is missing for the object")
+        return None
+
     available_altitude = (fov_height - size_major) / 2
     available_azimuth = (fov_width - size_minor) / 2
     current_time = altaz.obstime
