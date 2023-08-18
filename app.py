@@ -87,10 +87,10 @@ def format_float(value, format_spec=".2f"):
 app.jinja_env.filters["format_float"] = format_float
 
 
-@app.route(f"{route}/", methods=["GET", "POST"])
-@limiter.limit("10 per minute")
-def index_redirect():
-    return redirect(url_for("index"))
+#@app.route(f"{route}/", methods=["GET", "POST"])
+#@limiter.limit("10 per minute")
+#def index_redirect():
+#    return redirect(url_for("index"))
 
 
 @app.route(route, methods=["GET", "POST"])
