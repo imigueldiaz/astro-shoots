@@ -207,3 +207,24 @@ input[type='number']::-moz-outer-spin-button {
     background-color: #555;
     font-family: 'Courier New', Courier, monospace;
 }
+@media (max-width: 767px) {
+    .select2-container--default .select2-selection--single {
+        height: 50px;
+    }
+
+    .select2-container--default
+        .select2-selection--single
+        .select2-selection__rendered {
+        line-height: 50px;
+    }
+
+    .select2-container--default
+        .select2-selection--single
+        .select2-selection__arrow {
+        height: 50px;
+    }
+
+    .custom-dropdown {
+        font-size: 1.2em;
+    }
+}

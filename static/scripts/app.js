@@ -102,10 +102,15 @@ function generateApertureOptions() {
 
 generateApertureOptions();
 
+const isMobile = window.innerWidth <= 767;
+
 $('#aperture').select2({
     placeholder: 'Select an aperture',
     allowClear: true,
     width: '100%',
+    minimumResultsForSearch: Infinity,
+    dropdownAutoWidth: isMobile,
+    dropdownCssClass: 'custom-dropdown',
 });
 
 const selectedAperture = $('#aperture').attr('data-selected-value');
