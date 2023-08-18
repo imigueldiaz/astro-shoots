@@ -7,14 +7,28 @@
             content="width=device-width, initial-scale=1.0"
         />
         <title>Number of untracked shoots calculator</title>
+
         <link
             rel="stylesheet"
-            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+            href="{{ url_for('static', filename='styles/bootstrap/bootstrap.min.css') }}"
         />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/select2/select2.min.css') }}"
+        />
+
         <script
-            src="https://kit.fontawesome.com/72b9b619a3.js"
-            crossorigin="anonymous"
+            defer
+            src="{{ url_for('static', filename='scripts/fontawesome/solid.min.js') }}"
         ></script>
+        <script
+            defer
+            src="{{ url_for('static', filename='scripts/fontawesome/fontawesome.min.js') }}"
+        ></script>
+
+        <script src="{{ url_for('static', filename='scripts/jquery/jquery-3.7.0.min.js') }}"></script>
+
+        <script src="{{ url_for('static', filename='scripts/select2/select2.full.min.js') }}"></script>
 
         <link
             rel="stylesheet"
@@ -28,12 +42,17 @@
                 action="{{ url_for('index') }}"
                 method="post"
             >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                />
                 <fieldset>
                     <legend>Object to search</legend>
                     <div class="row">
                         <div class="col">
                             <label for="object_name">Object Name:</label>
-                            <div style="position: relative">
+                            <div class="position-relative">
                                 <input
                                     type="text"
                                     class="form-control medium-input"
@@ -42,7 +61,7 @@
                                     value="{{ request.args.get('object_name', '') }}"
                                     required
                                 />
-                                <i class="fas fa-search input-icon"></i>
+                                <i class="fa-solid fa-search input-icon"></i>
                             </div>
                         </div>
                     </div>
@@ -137,7 +156,7 @@
                             <label for="sensor_height_mm"
                                 >Sensor Height (mm):</label
                             >
-                            <div style="position: relative">
+                            <div class="position-relative">
                                 <input
                                     type="number"
                                     step="0.01"
@@ -149,14 +168,16 @@
                                     value="{{ request.args.get('sensor_height_mm', '') }}"
                                     required
                                 />
-                                <i class="fas fa-ruler-vertical input-icon"></i>
+                                <i
+                                    class="fa-solid fa-ruler-vertical input-icon"
+                                ></i>
                             </div>
                         </div>
                         <div class="col">
                             <label for="sensor_width_mm"
                                 >Sensor Width (mm):</label
                             >
-                            <div style="position: relative">
+                            <div class="position-relative">
                                 <input
                                     type="number"
                                     step="0.01"
@@ -169,7 +190,7 @@
                                     required
                                 />
                                 <i
-                                    class="fas fa-ruler-horizontal input-icon"
+                                    class="fa-solid fa-ruler-horizontal input-icon"
                                 ></i>
                             </div>
                         </div>
@@ -179,7 +200,7 @@
                             <label for="number_of_pixels_in_width">
                                 Number of Pixels in Width:
                             </label>
-                            <div style="position: relative">
+                            <div class="position-relative">
                                 <input
                                     type="number"
                                     min="1"
@@ -193,7 +214,7 @@
                                     required
                                 />
                                 <i
-                                    class="fa-sharp fa-solid fa-arrows-left-right-to-line input-icon"
+                                    class="fa-solid fa-arrows-left-right-to-line input-icon"
                                 ></i>
                             </div>
                         </div>
@@ -204,7 +225,7 @@
                     <div class="row">
                         <div class="col">
                             <label for="focal_length">Focal Length:</label>
-                            <div style="position: relative">
+                            <div class="position-relative">
                                 <input
                                     type="number"
                                     min="1"
@@ -215,29 +236,28 @@
                                     value="{{ request.args.get('focal_length', '') }}"
                                     required
                                 />
-                                <i class="fas fa-binoculars input-icon"></i>
+                                <i
+                                    class="fa-solid fa-binoculars input-icon"
+                                ></i>
                             </div>
                         </div>
                         <div class="col">
                             <label for="aperture">Aperture:</label>
-                            <div style="position: relative">
-                                <input
-                                    type="number"
-                                    step="0.1"
-                                    min="0"
-                                    max="64"
-                                    class="form-control short-input spinner"
+                            <div class="position-relative">
+                                <select
+                                    class="form-control custom-select"
                                     id="aperture"
                                     name="aperture"
-                                    value="{{ request.args.get('aperture', '') }}"
                                     required
-                                />
-                                <i class="fas fa-aperture input-icon"></i>
+                                    data-selected-value="{{ request.args.get('aperture', '') }}"
+                                ></select>
+
+                                <i class="fa-solid fa-aperture input-icon"></i>
                             </div>
                         </div>
                         <div class="col">
                             <label for="shoot_interval">Shoot Interval:</label>
-                            <div style="position: relative">
+                            <div class="position-relative">
                                 <input
                                     type="number"
                                     min="0"
@@ -248,7 +268,7 @@
                                     value="{{ request.args.get('shoot_interval', '') }}"
                                     required
                                 />
-                                <i class="fas fa-stopwatch input-icon"></i>
+                                <i class="fa-solid fa-stopwatch input-icon"></i>
                             </div>
                         </div>
                     </div>
@@ -256,7 +276,6 @@
                 <button
                     type="submit"
                     class="btn btn-primary mt-3 btn-calculate"
-                    onclick="disableButton()"
                 >
                     Calculate
                 </button>

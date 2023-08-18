@@ -82,5 +82,35 @@ function setPosition(position) {
     document.getElementById('longitude_min').value = lonMin;
     document.getElementById('longitude_sec').value = lonSec;
 }
+function generateApertureOptions() {
+    const apertures = [
+        1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.5, 2.8, 3.2, 3.5, 4.0, 4.5,
+        5.0, 5.6, 6.3, 7.1, 8.0, 9.0, 10.0, 11.0, 13.0, 14.0, 16.0, 18.0, 20.0,
+        22.0, 25.0, 29.0, 32.0, 36.0, 40.0, 45.0, 51.0, 57.0, 64.0, 72.0, 81.0,
+        91.0,
+    ];
+
+    const apertureSelect = document.getElementById('aperture');
+
+    apertures.forEach((aperture) => {
+        const option = document.createElement('option');
+        option.value = aperture;
+        option.text = `f/${aperture}`;
+        apertureSelect.appendChild(option);
+    });
+}
+
+generateApertureOptions();
+
+$('#aperture').select2({
+    placeholder: 'Select an aperture',
+    allowClear: true,
+    width: '100%',
+});
+
+const selectedAperture = $('#aperture').attr('data-selected-value');
+if (selectedAperture) {
+    $('#aperture').val(selectedAperture).trigger('change');
+}
 
 window.onload = getLocation;

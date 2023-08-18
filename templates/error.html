@@ -7,12 +7,30 @@
             content="width=device-width, initial-scale=1.0"
         />
         <title>Number of untracked shoots calculator - Error</title>
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/bootstrap/bootstrap.min.css') }}"
+        />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/app.css') }}"
+        />
     </head>
     <body>
-        <h1>Error</h1>
-        <p>{{ error }}</p>
-        <br />
-<a href="{{ url_for('index', object_name=request.form['object_name'], latitude=request.form['latitude'], longitude=request.form['longitude'], sensor_height_mm=request.form['sensor_height_mm'], sensor_width_mm=request.form['sensor_width_mm'], focal_length=request.form['focal_length'], shoot_interval=request.form['shoot_interval'], aperture=request.form['aperture'], number_of_pixels_in_width=request.form['number_of_pixels_in_width']) }}">Back to form</a>
-
+        <div class="container">
+            <h1>Error</h1>
+            <table class="result-table">
+                <tr>
+                    <th>Error Message</th>
+                    <td class="variable">{{ error }}</td>
+                </tr>
+            </table>
+            <br />
+            <a
+                class="btn"
+                href="{{ url_for('index', object_name=request.form['object_name'], latitude=request.form['latitude'], longitude=request.form['longitude'], sensor_height_mm=request.form['sensor_height_mm'], sensor_width_mm=request.form['sensor_width_mm'], focal_length=request.form['focal_length'], shoot_interval=request.form['shoot_interval'], aperture=request.form['aperture'], number_of_pixels_in_width=request.form['number_of_pixels_in_width']) }}"
+                >Back to form</a
+            >
+        </div>
     </body>
 </html>

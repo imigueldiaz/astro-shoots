@@ -1,15 +1,29 @@
-from flask import Flask, request, render_template, redirect, url_for
+from io import StringIO
+from flask import Flask, render_template, redirect, url_for
+from flask_limiter import Limiter
+from flask_wtf import FlaskForm
+from wtforms import StringField, FloatField, IntegerField, SubmitField
+from wtforms.validators import DataRequired, NumberRange
 from datetime import datetime, timedelta
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.time import Time
 import astropy.units as u
 from astroquery.simbad import Simbad
 import numpy as np
-from io import StringIO
 import sys
 import logging
 import configparser
+from flask_wtf.csrf import CSRFProtect
 
+# Additional imports for input validation and rate limiting
+from wtforms import ValidationError
+from flask_talisman import Talisman
+
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 Simbad.add_votable_fields("dim_majaxis", "dim_minaxis")
 
@@ -23,6 +37,48 @@ static_url_path = config.get("APP", "STATIC_URL_PATH")
 
 app = Flask(__name__, static_url_path=static_url_path)
 
+# Set the secret key for your Flask application
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
+
+# Add rate limiting
+limiter = Limiter(app, default_limits=["100 per day", "20 per hour"])
+
+csp = {
+    "default-src": "'self'",
+    "img-src": "*",
+    "script-src": "'self'",
+    "style-src": "'self' 'unsafe-inline'",
+    "font-src": "'self'",
+}
+
+talisman = Talisman(app, content_security_policy=csp)
+csrf = CSRFProtect(app)
+
+
+class ObjectForm(FlaskForm):
+    object_name = StringField("Object Name", validators=[DataRequired()])
+    latitude = FloatField("Latitude", validators=[DataRequired(), NumberRange(-90, 90)])
+    longitude = FloatField(
+        "Longitude", validators=[DataRequired(), NumberRange(-180, 180)]
+    )
+    sensor_height_mm = FloatField(
+        "Sensor Height (mm)", validators=[DataRequired(), NumberRange(1, 100)]
+    )
+    sensor_width_mm = FloatField(
+        "Sensor Width (mm)", validators=[DataRequired(), NumberRange(1, 100)]
+    )
+    focal_length = FloatField(
+        "Focal Length", validators=[DataRequired(), NumberRange(1, 10000)]
+    )
+    shoot_interval = FloatField(
+        "Shoot Interval", validators=[DataRequired(), NumberRange(0, 999)]
+    )
+    aperture = FloatField("Aperture", validators=[DataRequired(), NumberRange(0, 64)])
+    number_of_pixels_in_width = IntegerField(
+        "Number of Pixels in Width", validators=[DataRequired(), NumberRange(1, 10000)]
+    )
+    submit = SubmitField("Submit")
+
 
 def format_float(value, format_spec=".2f"):
     return format(value, format_spec)
@@ -32,23 +88,26 @@ app.jinja_env.filters["format_float"] = format_float
 
 
 @app.route(f"{route}/", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
 def index_redirect():
     return redirect(url_for("index"))
 
 
 @app.route(route, methods=["GET", "POST"])
+@limiter.limit("10 per minute")
 def index():
-    if request.method == "POST":
-        object_name = request.form["object_name"]
-        latitude = float(request.form["latitude"])
-        longitude = float(request.form["longitude"])
-        sensor_height_mm = float(request.form["sensor_height_mm"])
-        sensor_width_mm = float(request.form["sensor_width_mm"])
-        focal_length = float(request.form["focal_length"])
+    form = ObjectForm()
+    if form.validate_on_submit():
+        object_name = form.object_name.data
+        latitude = form.latitude.data
+        longitude = form.longitude.data
+        sensor_height_mm = form.sensor_height_mm.data
+        sensor_width_mm = form.sensor_width_mm.data
+        focal_length = form.focal_length.data
         utc_datetime = datetime.utcnow()
-        shoot_interval = float(request.form["shoot_interval"])
-        aperture = float(request.form["aperture"])
-        number_of_pixels_in_width = int(request.form["number_of_pixels_in_width"])
+        shoot_interval = form.shoot_interval.data
+        aperture = form.aperture.data
+        number_of_pixels_in_width = form.number_of_pixels_in_width.data
 
         ra, dec, size_major, size_minor, object_name, error = get_ra_dec_size(
             object_name
