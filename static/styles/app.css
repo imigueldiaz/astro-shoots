@@ -207,24 +207,80 @@ input[type='number']::-moz-outer-spin-button {
     background-color: #555;
     font-family: 'Courier New', Courier, monospace;
 }
-@media (max-width: 767px) {
-    .select2-container--default .select2-selection--single {
-        height: 50px;
-    }
+.choices {
+    --choices-button-dimension: 30px;
+}
 
-    .select2-container--default
-        .select2-selection--single
-        .select2-selection__rendered {
-        line-height: 50px;
-    }
+.choices__input {
+    background-color: #333;
+    border-color: #444;
+    color: #eee;
+    height: auto; /* Add this line */
+    padding: 4px 12px; /* Update this line */
+}
 
-    .select2-container--default
-        .select2-selection--single
-        .select2-selection__arrow {
-        height: 50px;
-    }
+.choices__input:focus {
+    border-color: #555;
+    box-shadow: none;
+}
 
-    .custom-dropdown {
-        font-size: 1.2em;
-    }
+.choices__list--dropdown {
+    background-color: #333;
+    border-color: #444;
+    padding: 0;
+    max-height: 250px; /* Add this line */
+    overflow-y: auto; /* Add this line */
+}
+
+.choices__list--single {
+    background-color: #333;
+    color: #eee;
+    border-color: #444;
+    height: auto;
+    padding: 2px 12px; /* Update this line */
+}
+
+.choices__item {
+    background-color: #333;
+    color: #eee;
+    padding: 4px 12px;
+    margin: 0;
+    line-height: 1.5; /* Add this line */
+}
+
+.choices__list--dropdown .choices__item--selectable {
+    background-color: #444;
+    color: #eee;
+}
+
+.choices__list--dropdown .choices__item--selectable:hover {
+    background-color: #555;
+    color: #eee;
+}
+
+.choices__list--dropdown .choices__item--highlighted {
+    background-color: #555;
+    color: #eee;
+}
+
+.choices__icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    color: #eee;
+    width: var(--choices-button-dimension);
+    height: var(--choices-button-dimension);
+    line-height: var(--choices-button-dimension);
+    text-align: center;
+}
+.choices__inner {
+    background-color: #333;
+    color: #eee;
+    border-color: #444;
+    padding: 0;
+}
+.choices {
+    margin-bottom: 0;
 }

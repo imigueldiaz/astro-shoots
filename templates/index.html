@@ -12,10 +12,21 @@
             rel="stylesheet"
             href="{{ url_for('static', filename='styles/bootstrap/bootstrap.min.css') }}"
         />
+
         <link
             rel="stylesheet"
-            href="{{ url_for('static', filename='styles/select2/select2.min.css') }}"
+            href="{{ url_for('static', filename='styles/choices/base.min.css') }}"
         />
+
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/choices/choices.min.css') }}"
+        />
+
+        <!-- <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/select2/select2.min.css') }}"
+        /> -->
 
         <script
             defer
@@ -26,9 +37,13 @@
             src="{{ url_for('static', filename='scripts/fontawesome/fontawesome.min.js') }}"
         ></script>
 
-        <script src="{{ url_for('static', filename='scripts/jquery/jquery-3.7.0.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='scripts/choices/choices.min.js') }}"></script>
 
-        <script src="{{ url_for('static', filename='scripts/select2/select2.full.min.js') }}"></script>
+        <!-- <script src="{{ url_for('static', filename='scripts/jquery/jquery-3.7.0.min.js') }}"></script>
+
+
+          
+        <script src="{{ url_for('static', filename='scripts/select2/select2.full.min.js') }}"></script> -->
 
         <link
             rel="stylesheet"
@@ -245,7 +260,7 @@
                             <label for="aperture">Aperture:</label>
                             <div class="position-relative">
                                 <select
-                                    class="form-control custom-select"
+                                    class="form-control"
                                     id="aperture"
                                     name="aperture"
                                     required
@@ -281,6 +296,9 @@
                 </button>
             </form>
         </div>
-        <script src="{{ url_for('static', filename='scripts/app.js') }}"></script>
+        <script
+            src="{{ url_for('static', filename='scripts/app.js') }}"
+            defer
+        ></script>
     </body>
 </html>

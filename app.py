@@ -52,7 +52,7 @@ limiter = Limiter(app, default_limits=["100 per day", "20 per hour"])
 
 csp = {
     "default-src": "'self'",
-    "img-src": "*",
+    "img-src": ["*", "data:"],
     "script-src": "'self'",
     "style-src": "'self' 'unsafe-inline'",
     "font-src": "'self'",

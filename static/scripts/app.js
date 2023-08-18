@@ -102,33 +102,17 @@ function generateApertureOptions() {
 
 generateApertureOptions();
 
-const isMobile = window.innerWidth <= 767;
-
-$('#aperture').select2({
-    placeholder: 'Select an aperture',
-    allowClear: true,
-    width: '100%',
-    minimumResultsForSearch: Infinity,
-    dropdownAutoWidth: isMobile,
-    dropdownCssClass: 'custom-dropdown',
+const apertureChoices = new Choices('#aperture', {
+    searchEnabled: false,
+    itemSelectText: '',
+    removeItemButton: true,
+    allowHTML: false,
 });
 
-if (isMobile) {
-    $('#aperture').on('select2:open', () => {
-        $('.select2-container').on('click', (e) => {
-            e.stopPropagation();
-            $('#aperture').select2('open');
-        });
-    });
-
-    $('#aperture').on('select2:close', () => {
-        $('.select2-container').off('click');
-    });
-}
-
-const selectedAperture = $('#aperture').attr('data-selected-value');
+const selectedAperture =
+    document.querySelector('#aperture').dataset.selectedValue;
 if (selectedAperture) {
-    $('#aperture').val(selectedAperture).trigger('change');
+    apertureChoices.setChoiceByValue(selectedAperture);
 }
 
 window.onload = getLocation;
