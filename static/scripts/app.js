@@ -113,6 +113,19 @@ $('#aperture').select2({
     dropdownCssClass: 'custom-dropdown',
 });
 
+if (isMobile) {
+    $('#aperture').on('select2:open', () => {
+        $('.select2-container').on('click', (e) => {
+            e.stopPropagation();
+            $('#aperture').select2('open');
+        });
+    });
+
+    $('#aperture').on('select2:close', () => {
+        $('.select2-container').off('click');
+    });
+}
+
 const selectedAperture = $('#aperture').attr('data-selected-value');
 if (selectedAperture) {
     $('#aperture').val(selectedAperture).trigger('change');
