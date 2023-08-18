@@ -21,7 +21,7 @@ from flask_talisman import Talisman
 
 import os
 from dotenv import load_dotenv
-
+from functools import wraps
 # Load environment variables from .env file
 load_dotenv()
 
@@ -37,8 +37,14 @@ static_url_path = config.get("APP", "STATIC_URL_PATH")
 
 app = Flask(__name__, static_url_path=static_url_path)
 
+# Add logging configuration
+handler = logging.FileHandler("app.log")
+handler.setLevel(logging.WARNING)
+app.logger.addHandler(handler)
+
 # Set the secret key for your Flask application
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
+app.config["DEBUG"] = True
 
 # Add rate limiting
 limiter = Limiter(app, default_limits=["100 per day", "20 per hour"])
@@ -53,7 +59,6 @@ csp = {
 
 talisman = Talisman(app, content_security_policy=csp)
 csrf = CSRFProtect(app)
-
 
 class ObjectForm(FlaskForm):
     object_name = StringField("Object Name", validators=[DataRequired()])
@@ -86,6 +91,15 @@ def format_float(value, format_spec=".2f"):
 
 app.jinja_env.filters["format_float"] = format_float
 
+def log_exceptions(f):
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except Exception as e:
+            app.logger.exception("An error occurred: %s", str(e))
+            return "An error occurred. Please check the logs for more information.", 500
+    return wrapped
 
 #@app.route(f"{route}/", methods=["GET", "POST"])
 #@limiter.limit("10 per minute")
@@ -95,6 +109,7 @@ app.jinja_env.filters["format_float"] = format_float
 
 @app.route(route, methods=["GET", "POST"])
 @limiter.limit("10 per minute")
+@log_exceptions
 def index():
     form = ObjectForm()
     if form.validate_on_submit():
