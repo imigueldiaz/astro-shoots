@@ -28,9 +28,22 @@
             <br />
             <a
                 class="btn"
-                href="{{ url_for('index', object_name=request.form['object_name'], latitude=request.form['latitude'], longitude=request.form['longitude'], sensor_height_mm=request.form['sensor_height_mm'], sensor_width_mm=request.form['sensor_width_mm'], focal_length=request.form['focal_length'], shoot_interval=request.form['shoot_interval'], aperture=request.form['aperture'], number_of_pixels_in_width=request.form['number_of_pixels_in_width']) }}"
-                >Back to form</a
+                href="{{ url_for('index', 
+    object_name=request.form['object_name'],
+    latitude=request.form['latitude'],
+    longitude=request.form['longitude'],
+    sensor_height_mm=request.form['sensor_height_mm'],
+    sensor_width_mm=request.form['sensor_width_mm'], 
+    focal_length=request.form['focal_length'],
+    shoot_interval=request.form['shoot_interval'],
+    aperture=request.form['aperture'],
+    number_of_pixels_in_width=request.form['number_of_pixels_in_width'],
+    number_of_pixels_in_height=request.form['number_of_pixels_in_height'],
+    object_id=request.form['object_id'],
+    camera_position=request.form['camera_position']) }}"
             >
+                Back to form
+            </a>
         </div>
     </body>
 </html>

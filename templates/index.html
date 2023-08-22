@@ -13,20 +13,9 @@
             href="{{ url_for('static', filename='styles/bootstrap/bootstrap.min.css') }}"
         />
 
-        <link
-            rel="stylesheet"
-            href="{{ url_for('static', filename='styles/choices/base.min.css') }}"
-        />
-
-        <link
-            rel="stylesheet"
-            href="{{ url_for('static', filename='styles/choices/choices.min.css') }}"
-        />
-
-        <!-- <link
-            rel="stylesheet"
-            href="{{ url_for('static', filename='styles/select2/select2.min.css') }}"
-        /> -->
+        <script>
+            const appRoute = '{{ route }}';
+        </script>
 
         <script
             defer
@@ -37,14 +26,6 @@
             src="{{ url_for('static', filename='scripts/fontawesome/fontawesome.min.js') }}"
         ></script>
 
-        <script src="{{ url_for('static', filename='scripts/choices/choices.min.js') }}"></script>
-
-        <!-- <script src="{{ url_for('static', filename='scripts/jquery/jquery-3.7.0.min.js') }}"></script>
-
-
-          
-        <script src="{{ url_for('static', filename='scripts/select2/select2.full.min.js') }}"></script> -->
-
         <link
             rel="stylesheet"
             href="{{ url_for('static', filename='styles/app.css') }}"
@@ -53,6 +34,14 @@
     <body>
         <div class="container">
             <h1 class="my-4">Number of untracked shoots calculator</h1>
+            {% if error %}
+            <div class="error">
+                {% for field, messages in error.items() %}
+                <b>{{ field }}:</b>
+                {% for message in messages %} {{ message }} {% endfor %} {%
+                endfor %}
+            </div>
+            {% endif %}
             <form
                 action="{{ url_for('index') }}"
                 method="post"
@@ -62,15 +51,31 @@
                     name="csrf_token"
                     value="{{ csrf_token() }}"
                 />
+                <input
+                    type="hidden"
+                    name="object_id"
+                    id="object_id"
+                    value="{{ request.args.get('object_id', '') }}"
+                />
                 <fieldset>
                     <legend>Object to search</legend>
                     <div class="row">
                         <div class="col">
+                            <span
+                                ><center>
+                                    <small>
+                                        Current local copy of OpenNGC database
+                                        contains
+                                        <strong>{{db_num_objects}}</strong>
+                                        objects.
+                                    </small>
+                                </center></span
+                            ><br />
                             <label for="object_name">Object Name:</label>
                             <div class="position-relative">
                                 <input
                                     type="text"
-                                    class="form-control medium-input"
+                                    class="form-control"
                                     id="object_name"
                                     name="object_name"
                                     value="{{ request.args.get('object_name', '') }}"
@@ -150,7 +155,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Add this inside the Observation location fieldset -->
                     <input
                         type="hidden"
                         id="latitude"
@@ -213,14 +217,14 @@
                     <div class="row">
                         <div class="col">
                             <label for="number_of_pixels_in_width">
-                                Number of Pixels in Width:
+                                Width px:
                             </label>
                             <div class="position-relative">
                                 <input
                                     type="number"
                                     min="1"
-                                    max="99999"
-                                    class="form-control short-input spinner"
+                                    max="9999"
+                                    class="form-control short-input"
                                     id="number_of_pixels_in_width"
                                     name="number_of_pixels_in_width"
                                     value="{{
@@ -229,7 +233,29 @@
                                     required
                                 />
                                 <i
-                                    class="fa-solid fa-arrows-left-right-to-line input-icon"
+                                    class="fa-solid fa-arrows-left-right input-icon"
+                                ></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label for="number_of_pixels_in_height">
+                                Height px:
+                            </label>
+                            <div class="position-relative">
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="9999"
+                                    class="form-control short-input"
+                                    id="number_of_pixels_in_height"
+                                    name="number_of_pixels_in_height"
+                                    value="{{
+                                        request.args.get('number_of_pixels_in_height', '')
+                                    }}"
+                                    required
+                                />
+                                <i
+                                    class="fa-solid fa-arrows-up-down input-icon"
                                 ></i>
                             </div>
                         </div>
@@ -258,18 +284,22 @@
                         </div>
                         <div class="col">
                             <label for="aperture">Aperture:</label>
-                            <div class="position-relative">
+                            <div class="position-relative select-wrapper">
                                 <select
-                                    class="form-control"
+                                    class="form-control custom-select-aperture select-aperture"
                                     id="aperture"
                                     name="aperture"
                                     required
                                     data-selected-value="{{ request.args.get('aperture', '') }}"
                                 ></select>
-
+                                <i
+                                    class="fa-solid fa-caret-down select-arrow-icon"
+                                ></i>
                                 <i class="fa-solid fa-aperture input-icon"></i>
                             </div>
                         </div>
+                    </div>
+                    <div class="row">
                         <div class="col">
                             <label for="shoot_interval">Shoot Interval:</label>
                             <div class="position-relative">
@@ -277,13 +307,68 @@
                                     type="number"
                                     min="0"
                                     max="9999"
-                                    class="form-control short-input spinner"
+                                    class="form-control short-input"
                                     id="shoot_interval"
                                     name="shoot_interval"
                                     value="{{ request.args.get('shoot_interval', '') }}"
                                     required
                                 />
                                 <i class="fa-solid fa-stopwatch input-icon"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label for="camera_position"
+                                >Camera position:</label
+                            >
+
+                            <div class="position-relative select-wrapper">
+                                <select
+                                    class="form-control custom-select-camera-position select-camera-position"
+                                    id="camera_position"
+                                    name="camera_position"
+                                    required
+                                    data-selected-value="{{ request.args.get('camera_position', '0') }}"
+                                >
+                                    <option
+                                        value="0"
+                                        selected
+                                    >
+                                        Horizontal
+                                    </option>
+
+                                    <option value="15">15° right</option>
+
+                                    <option value="30">30° right</option>
+
+                                    <option value="45">45° right</option>
+
+                                    <option value="60">60° right</option>
+
+                                    <option value="75">75° right</option>
+
+                                    <option value="90">Vertical</option>
+
+                                    <option value="-15">15° left</option>
+
+                                    <option value="-30">30° left</option>
+
+                                    <option value="-45">45° left</option>
+
+                                    <option value="-60">60° left</option>
+
+                                    <option value="-75">75° left</option>
+
+                                    <option value="-90">
+                                        Reverse Vertical
+                                    </option>
+                                </select>
+                                <i
+                                    class="fa-solid fa-caret-down select-arrow-icon"
+                                ></i>
+
+                                <i
+                                    class="fa-solid fa-camera-rotate input-icon"
+                                ></i>
                             </div>
                         </div>
                     </div>

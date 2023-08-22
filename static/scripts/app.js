@@ -102,17 +102,67 @@ function generateApertureOptions() {
 
 generateApertureOptions();
 
-const apertureChoices = new Choices('#aperture', {
-    searchEnabled: false,
-    itemSelectText: '',
-    removeItemButton: true,
-    allowHTML: false,
-});
+const cameraPositionSelect = document.querySelector('#camera_position');
+const selectedCameraPosition = cameraPositionSelect.dataset.selectedValue;
 
-const selectedAperture =
-    document.querySelector('#aperture').dataset.selectedValue;
-if (selectedAperture) {
-    apertureChoices.setChoiceByValue(selectedAperture);
+// Set the default value if there's no value in the request arguments
+if (selectedCameraPosition === undefined) {
+    cameraPositionSelect.value = '0';
+} else {
+    cameraPositionSelect.value = selectedCameraPosition;
 }
+
+const apertureSelect = document.querySelector('#aperture');
+const selectedAperture = apertureSelect.dataset.selectedValue;
+
+// Set the default value if there's no value in the request arguments
+if (selectedAperture === undefined) {
+    apertureSelect.value = '1';
+} else {
+    apertureSelect.value = selectedAperture;
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const objectNameInput = document.getElementById('object_name');
+
+    const suggestionList = document.createElement('div');
+    suggestionList.id = 'suggestion-list';
+    suggestionList.className = 'suggestion-list';
+
+    objectNameInput.parentNode.appendChild(suggestionList);
+
+    objectNameInput.addEventListener('input', function () {
+        const query = objectNameInput.value.trim();
+
+        if (query.length < 3) {
+            suggestionList.innerHTML = '';
+            return;
+        }
+
+        fetch(`${appRoute}/search_objects?query=${query}`)
+            .then((response) => response.json())
+            .then((suggestions) => {
+                suggestionList.innerHTML = '';
+
+                suggestions.forEach((suggestion) => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.textContent = suggestion.name;
+
+                    item.addEventListener('click', function () {
+                        objectNameInput.value = suggestion.name;
+
+                        const objectIdInput =
+                            document.getElementById('object_id');
+                        objectIdInput.value = suggestion.id;
+
+                        suggestionList.innerHTML = '';
+                    });
+
+                    suggestionList.appendChild(item);
+                });
+            });
+    });
+});
 
 window.onload = getLocation;

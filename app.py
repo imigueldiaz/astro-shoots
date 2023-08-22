@@ -1,32 +1,35 @@
-from io import StringIO
-from flask import Flask, render_template, redirect, url_for
-from flask_limiter import Limiter
-from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, IntegerField, SubmitField
-from wtforms.validators import DataRequired, NumberRange
-from datetime import datetime, timedelta
-from astropy.coordinates import SkyCoord, EarthLocation, AltAz
-from astropy.time import Time
-import astropy.units as u
-from astroquery.simbad import Simbad
-import numpy as np
-import sys
-import logging
 import configparser
+import json
+import logging
+import math
+import os
+from datetime import datetime, timedelta
+from functools import wraps
+
+import astropy.units as u
+import numpy as np
+from astropy.coordinates import AltAz, EarthLocation, SkyCoord
+from astropy.time import Time
+from dotenv import load_dotenv
+from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask_limiter import Limiter
+from flask_talisman import Talisman
+from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
+from pyongc import ongc
 
 # Additional imports for input validation and rate limiting
-from wtforms import ValidationError
-from flask_talisman import Talisman
-
-import os
-from dotenv import load_dotenv
-from functools import wraps
+from wtforms import (
+    FloatField,
+    HiddenField,
+    IntegerField,
+    StringField,
+    SubmitField,
+)
+from wtforms.validators import DataRequired, InputRequired, NumberRange
 
 # Load environment variables from .env file
 load_dotenv()
-
-Simbad.add_votable_fields("dim_majaxis", "dim_minaxis")
 
 # Read the configuration file
 config = configparser.ConfigParser()
@@ -40,7 +43,7 @@ app = Flask(__name__, static_url_path=static_url_path)
 
 # Add logging configuration
 handler = logging.FileHandler("app.log")
-handler.setLevel(logging.WARNING)
+handler.setLevel(logging.DEBUG)
 app.logger.addHandler(handler)
 
 # Set the secret key for your Flask application
@@ -48,12 +51,12 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 app.config["DEBUG"] = True
 
 # Add rate limiting
-limiter = Limiter(app, default_limits=["100 per day", "20 per hour"])
+limiter = Limiter(app, default_limits=["10000 per day", "2000 per hour"])
 
 csp = {
     "default-src": "'self'",
     "img-src": ["*", "data:"],
-    "script-src": "'self'",
+    "script-src": "'self' 'unsafe-inline'",
     "style-src": "'self' 'unsafe-inline'",
     "font-src": "'self'",
 }
@@ -61,12 +64,43 @@ csp = {
 talisman = Talisman(app, content_security_policy=csp)
 csrf = CSRFProtect(app)
 
+# Get the object list
+obj_list = ongc.listObjects()
+
+
+# Define a custom function to filter out key-value pairs with a None value
+def filter_none(d):
+    return {k: v for k, v in d.items() if v is not None}
+
+
+# Convert each object to JSON and store it in a global list, filtering out None values
+json_obj_list = [json.loads(obj.to_json(), object_hook=filter_none) for obj in obj_list]
+
+obj_dict = {}
+for json_obj in json_obj_list:
+    # Add primary ID first
+    obj_dict[json_obj["id"]] = json_obj
+
+    # Check for other identifiers
+    if "other identifiers" in json_obj:
+        # Add each identifier
+        for id_type, id_value in json_obj["other identifiers"].items():
+            if id_value is not None:
+                if isinstance(id_value, list):
+                    for identifier in id_value:
+                        if identifier is not None:
+                            obj_dict[identifier] = json_obj
+                else:
+                    obj_dict[id_value] = json_obj
+
 
 class ObjectForm(FlaskForm):
     object_name = StringField("Object Name", validators=[DataRequired()])
-    latitude = FloatField("Latitude", validators=[DataRequired(), NumberRange(-90, 90)])
+    latitude = FloatField(
+        "Latitude", validators=[InputRequired(), NumberRange(-90, 90)]
+    )
     longitude = FloatField(
-        "Longitude", validators=[DataRequired(), NumberRange(-180, 180)]
+        "Longitude", validators=[InputRequired(), NumberRange(-180, 180)]
     )
     sensor_height_mm = FloatField(
         "Sensor Height (mm)", validators=[DataRequired(), NumberRange(1, 100)]
@@ -78,12 +112,22 @@ class ObjectForm(FlaskForm):
         "Focal Length", validators=[DataRequired(), NumberRange(1, 10000)]
     )
     shoot_interval = FloatField(
-        "Shoot Interval", validators=[DataRequired(), NumberRange(0, 999)]
+        "Shoot Interval", validators=[InputRequired(), NumberRange(0, 999)]
     )
-    aperture = FloatField("Aperture", validators=[DataRequired(), NumberRange(0, 64)])
+    aperture = FloatField(
+        "Aperture", validators=[InputRequired(), NumberRange(0.8, 64)]
+    )
     number_of_pixels_in_width = IntegerField(
-        "Number of Pixels in Width", validators=[DataRequired(), NumberRange(1, 10000)]
+        "Width px", validators=[DataRequired(), NumberRange(1, 9999)]
     )
+    number_of_pixels_in_height = IntegerField(
+        "Height px", validators=[DataRequired(), NumberRange(1, 9999)]
+    )
+
+    camera_position = IntegerField(
+        "Camera Position", validators=[InputRequired(), NumberRange(-90, 90)]
+    )
+    object_id = HiddenField()
     submit = SubmitField("Submit")
 
 
@@ -106,10 +150,27 @@ def log_exceptions(f):
     return wrapped
 
 
-# @app.route(f"{route}/", methods=["GET", "POST"])
-# @limiter.limit("10 per minute")
-# def index_redirect():
-#    return redirect(url_for("index"))
+@app.route(f"{route}/search_objects")
+def search_objects():
+    query = request.args.get("query")
+    if len(query) < 3:
+        return jsonify([])
+
+    results = [
+        obj
+        for obj_id, obj in obj_dict.items()
+        if query.lower() in str(obj_id).lower() or query.lower() in obj["name"].lower()
+    ]
+
+    suggestions = [
+        {
+            "name": f"{obj['name']} ({obj.get('other identifiers', {}).get('common names', ['No common name'])[0]})",
+            "id": obj["id"],
+        }
+        for obj in results
+    ]
+
+    return jsonify(suggestions)
 
 
 @app.route(route, methods=["GET", "POST"])
@@ -128,9 +189,12 @@ def index():
         shoot_interval = form.shoot_interval.data
         aperture = form.aperture.data
         number_of_pixels_in_width = form.number_of_pixels_in_width.data
+        number_of_pixels_in_height = form.number_of_pixels_in_height.data
+        camera_position = form.camera_position.data
+        object_id = form.object_id.data
 
-        ra, dec, size_major, size_minor, object_name, error = get_ra_dec_size(
-            object_name
+        ra, dec, size_major, size_minor, object_name, pa, error = get_object_data(
+            object_id
         )
         if error:
             return render_template("error.html", error=error)
@@ -138,10 +202,16 @@ def index():
         location = EarthLocation(lat=latitude * u.deg, lon=longitude * u.deg)
         altaz = get_alt_az(location, ra, dec, utc_datetime)
         if altaz is None:
-            return render_template("error.html", error="Altitude and azimuth not found")
+            return render_template(
+                "error.html", error=f"Altitude and azimuth not found for {object_name} "
+            )
 
-        fov_width, fov_height = calculate_camera_fov(
-            sensor_width_mm, sensor_height_mm, focal_length
+        fov_width, fov_height, pixel_width, pixel_height = calculate_camera_fov(
+            sensor_width_mm,
+            sensor_height_mm,
+            number_of_pixels_in_width,
+            number_of_pixels_in_height,
+            focal_length,
         )
         max_shooting_time, real_max_shooting_time = calculate_max_shooting_time(
             aperture, sensor_width_mm, number_of_pixels_in_width, focal_length
@@ -157,6 +227,8 @@ def index():
             size_minor,
             max_shooting_time,
             shoot_interval,
+            camera_position,
+            pa,
         )
 
         if num_shoots is None:
@@ -169,64 +241,78 @@ def index():
             "result.html",
             fov_width=fov_width,
             fov_height=fov_height,
+            pixel_width=pixel_width,
+            pixel_height=pixel_height,
             size_major=size_major,
             size_minor=size_minor,
             max_shooting_time=max_shooting_time,
             num_shoots=num_shoots,
             object_name=object_name,
             real_max_shooting_time=real_max_shooting_time,
+            pa=pa,
+            camera_position=camera_position,
+            route=route,
+            db_num_objects=len(obj_list),
+            error=None,
         )
 
-    return render_template("index.html")
+    return render_template(
+        "index.html",
+        error=form.errors,
+        route=route,
+        db_num_objects=len(obj_list),
+    )
 
 
-def get_ra_dec_size(object_name):
-    result = Simbad.query_object(object_name)
+def get_object_data(object_id):
+    result = obj_dict.get(object_id)
+
     if result is None:
-        return None, None, None, None, None, "Object not found"
+        try:
+            object_id_int = int(object_id)
+            result = obj_dict.get(object_id_int)  # Try the integer version
+        except ValueError:
+            pass  # The ID could not be converted to an integer
 
-    ra = result["RA"][0]
-    dec = result["DEC"][0]
-    size_major = (
-        result["GALDIM_MAJAXIS"][0] if "GALDIM_MAJAXIS" in result.colnames else None
-    )
-    size_minor = (
-        result["GALDIM_MINAXIS"][0] if "GALDIM_MINAXIS" in result.colnames else None
-    )
+    if result is None:
+        return None, None, None, None, None, None, f"Object {object_id} not found"
 
-    # Get all identifiers for the object
-    identifiers = Simbad.query_objectids(object_name)
+    ra_hms = result["coordinates"]["right ascension"]
+    dec_dms = result["coordinates"]["declination"]
+
+    # Create a SkyCoord object using the HMS and DMS values
+    coord = SkyCoord(ra=ra_hms, dec=dec_dms, unit=(u.hourangle, u.deg))
+
+    ra = coord.ra.deg
+    dec = coord.dec.deg
 
     # Find the common name among the identifiers
-    common_name = None
-    for identifier in identifiers["ID"]:
-        id_str = identifier
-        if id_str != object_name and "NAME" in id_str:
-            common_name = id_str.replace("NAME ", "")
-            break
+    common_name = result["name"]
 
     if common_name:
-        object_name = f"{object_name} ({common_name})"
+        object_id = f"{object_id} ({common_name})"
     else:
-        object_name = f"{object_name}"
+        object_id = f"{object_id}"
+
+    size_major = result["dimensions"]["major axis"]
+    size_minor = result["dimensions"]["minor axis"]
+    pa = result["dimensions"]["position angle"]
+
+    if pa is None:
+        pa = 0
 
     if size_major is None or size_minor is None:
-        # Capture the output of result.pprint()
-        output = StringIO()
-        sys.stdout = output
-        result.pprint()
-        sys.stdout = sys.__stdout__
-
         return (
             None,
             None,
             None,
             None,
             None,
-            f"Size data is missing on Simbad for {object_name}\n\n<pre>{output.getvalue()}</pre>",
+            None,
+            f"Size data is missing for {object_id}",
         )
 
-    return ra, dec, size_major, size_minor, object_name, None
+    return ra, dec, size_major, size_minor, object_id, pa, None
 
 
 def get_alt_az(location, ra, dec, utc_datetime=None, min_altitude=0, min_speed=0.1):
@@ -236,7 +322,7 @@ def get_alt_az(location, ra, dec, utc_datetime=None, min_altitude=0, min_speed=0
 
     while True:
         altaz = obj.transform_to(AltAz(location=location, obstime=Time(utc_datetime)))
-        if altaz.alt.degree > min_altitude:
+        if (altaz.alt.degree > min_altitude).any():
             next_time = utc_datetime + timedelta(minutes=1)
             next_altaz = obj.transform_to(
                 AltAz(location=location, obstime=Time(next_time))
@@ -252,15 +338,35 @@ def get_alt_az(location, ra, dec, utc_datetime=None, min_altitude=0, min_speed=0
     return altaz
 
 
-def calculate_camera_fov(sensor_width_mm, sensor_height_mm, focal_length):
-    fov_width = (
-        2 * (180 / np.pi) * (np.arctan(sensor_width_mm / (2 * focal_length))) * 60
+def calculate_camera_fov(
+    sensor_width_mm,
+    sensor_height_mm,
+    horizontal_pixels,
+    vertical_pixels,
+    focal_length_mm,
+):
+    pixel_width_mm = sensor_width_mm / horizontal_pixels
+    pixel_height_mm = sensor_height_mm / vertical_pixels
+
+    fov_horizontal_degrees = 2 * math.degrees(
+        math.atan((pixel_width_mm * horizontal_pixels) / (2 * focal_length_mm))
     )
-    fov_height = (
-        2 * (180 / np.pi) * (np.arctan(sensor_height_mm / (2 * focal_length))) * 60
+    fov_vertical_degrees = 2 * math.degrees(
+        math.atan((pixel_height_mm * vertical_pixels) / (2 * focal_length_mm))
     )
 
-    return fov_width, fov_height
+    fov_horizontal_arcminutes = fov_horizontal_degrees * 60
+    fov_vertical_arcminutes = fov_vertical_degrees * 60
+
+    pixel_width_arcsec = fov_horizontal_arcminutes / horizontal_pixels * 60
+    pixel_height_arcsec = fov_vertical_arcminutes / vertical_pixels * 60
+
+    return (
+        fov_horizontal_arcminutes,
+        fov_vertical_arcminutes,
+        pixel_width_arcsec,
+        pixel_height_arcsec,
+    )
 
 
 def round_down_shutter_speed(shutter_speed):
@@ -350,38 +456,83 @@ def calculate_number_of_shoots(
     size_minor,
     exposure_time,
     shoot_interval,
+    camera_position,
+    PA,
 ):
     if np.ma.is_masked(size_major) or np.ma.is_masked(size_minor):
         app.logger.error("Size data is missing for the object")
         return None
 
-    available_altitude = (fov_height - size_major) / 2
-    available_azimuth = (fov_width - size_minor) / 2
+    # Aplicar rotaciones a FOV
+    if camera_position == 0:
+        fov_rot_h = fov_width
+        fov_rot_v = fov_height
+
+    elif camera_position == 90:
+        fov_rot_h = fov_height
+        fov_rot_v = fov_width
+
+    elif camera_position == -90:
+        fov_rot_h = fov_height
+        fov_rot_v = fov_width
+
+    else:
+        fov_rot_h, fov_rot_v = rotate_fov(fov_width, fov_height, camera_position, PA)
+
+    available_altitude = abs(fov_rot_h - size_major) / 2
+    available_azimuth = abs(fov_rot_v - size_minor) / 2
     current_time = altaz.obstime
     num_shoots = 0
     while True:
         # Calculate the new position of the object after shoot_interval and exposure_time
         next_time = current_time + (shoot_interval + exposure_time) * u.second
         new_altaz = get_alt_az(location, ra, dec, next_time)
-        logging.debug(f"AltAz: {new_altaz}")
         avg_altitude_speed = (
             abs(new_altaz.alt.degree - altaz.alt.degree) * 60 / shoot_interval
         )
         avg_azimuth_speed = (
             abs(new_altaz.az.degree - altaz.az.degree) * 60 / shoot_interval
         )
-        max_movement_altitude = available_altitude / avg_altitude_speed
-        max_movement_azimuth = available_azimuth / avg_azimuth_speed
+        max_movement_altitude = available_altitude / abs(avg_altitude_speed)
+        max_movement_azimuth = available_azimuth / abs(avg_azimuth_speed)
         total_time_available = (
             min(max_movement_altitude, max_movement_azimuth) * shoot_interval
         )  # Convert minutes to seconds
         total_time_per_shot = exposure_time + shoot_interval
-        num_shots = int(total_time_available // total_time_per_shot)
+        num_shots = max(0, total_time_available // total_time_per_shot)
         if num_shots > 0:
             break
         current_time = next_time
         altaz = new_altaz
     return num_shots
+
+
+def rotate_fov(fov_width, fov_height, camera_position, PA):
+    # Convertir ángulos a radianes
+    PA_rad = PA * np.pi / 180
+
+    camera_rot_rad = camera_position * np.pi / 180
+
+    # Calcular componentes de rotación
+    CP_sin = np.sin(camera_rot_rad)
+    CP_cos = np.cos(camera_rot_rad)
+
+    PA_sin = np.sin(PA_rad)
+    PA_cos = np.cos(PA_rad)
+    # Matriz de rotación basada en posición de cámara
+    CP_rot_matrix = np.array([[CP_cos, -CP_sin], [CP_sin, CP_cos]])
+
+    # Matriz de rotación basada en ángulo de posición
+    PA_rot_matrix = np.array([[PA_cos, -PA_sin], [PA_sin, PA_cos]])
+
+    # Aplicar rotaciones
+    fov_rotated = CP_rot_matrix @ PA_rot_matrix @ [[fov_width], [fov_height]]
+
+    # Desempacar y convertir a escalares
+    fov_rot_h = float(fov_rotated[0])
+    fov_rot_v = float(fov_rotated[1])
+
+    return fov_rot_h, fov_rot_v
 
 
 if __name__ == "__main__":
