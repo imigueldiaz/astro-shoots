@@ -1,5 +1,5 @@
 import unittest
-from dsosearcher import DsoSearcher
+from src.app.search.dsosearcher import DsoSearcher
 from pyongc.ongc import Dso
 
 

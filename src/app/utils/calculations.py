@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 import astropy.units as u
-from astro_utils import get_alt_az
+from .astro_utils import get_alt_az
 
 
 def calculate_camera_fov(

@@ -3,7 +3,7 @@ import json
 from astropy.coordinates import AltAz, SkyCoord
 import astropy.units as u
 from astropy.time import Time
-from dsosearcher import DsoSearcher
+from app.search.dsosearcher import DsoSearcher
 
 
 def get_object_data(object_id):

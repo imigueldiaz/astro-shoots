@@ -1,16 +1,23 @@
 from flask import Flask
 
-import settings
-from initialize import init_csrf, init_limiter, init_logging, init_talisman
-from routes import initialize_routes
-from calculations import (
+from app.utils.initialize import init_csrf, init_limiter, init_logging, init_talisman
+from app.routes.route_initializer import initialize_routes
+from app.utils.calculations import (
     calculate_camera_fov,
     calculate_max_shooting_time,
     calculate_number_of_shoots,
 )
-from astro_utils import get_alt_az, get_object_data
+from app.utils.astro_utils import get_alt_az, get_object_data
 
-settings.load_config()
+from app.utils.settings import load_config
+
+config = load_config()
+
+ROUTE = config["ROUTE"]
+SECRET_KEY = config["SECRET_KEY"]
+STATIC_URL_PATH = config["STATIC_URL_PATH"]
+DEBUG = config["DEBUG"]
+pass
 
 
 def format_float(value, format_spec=".2f"):
@@ -34,9 +41,14 @@ def create_app():
     Returns:
         app (Flask): The Flask application object.
     """
-    app = Flask(__name__, static_url_path=settings.STATIC_URL_PATH)
-    app.config["SECRET_KEY"] = settings.SECRET_KEY
-    app.config["DEBUG"] = settings.DEBUG
+    app = Flask(
+        __name__,
+        static_url_path=STATIC_URL_PATH,
+        static_folder="static",
+        template_folder="templates",
+    )
+    app.config["SECRET_KEY"] = SECRET_KEY
+    app.config["DEBUG"] = DEBUG
 
     app.dsoDict = {}
     app.jsonObjectList = []
@@ -54,6 +66,7 @@ def create_app():
 app = create_app()
 initialize_routes(
     app,
+    ROUTE,
     calculate_camera_fov,
     calculate_max_shooting_time,
     calculate_number_of_shoots,
@@ -63,4 +76,4 @@ initialize_routes(
 
 
 if __name__ == "__main__":
-    app.run(debug=settings.DEBUG)
+    app.run(debug=DEBUG)

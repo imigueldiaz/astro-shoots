@@ -39,20 +39,17 @@
             </div>
             {% endif %}
             <form
-                action="{{ url_for('index') }}"
+                action="{{ url_for('index.index') }}"
                 method="post"
             >
-                <input
-                    type="hidden"
-                    name="csrf_token"
-                    value="{{ csrf_token() }}"
-                />
+                {{ form.csrf_token }}
                 <input
                     type="hidden"
                     name="object_id"
                     id="object_id"
                     value="{{ request.args.get('object_id', '') }}"
                 />
+
                 <fieldset>
                     <legend>Object to search</legend>
                     <div class="row">
@@ -217,29 +214,6 @@
                     </div>
                     <div class="row">
                         <div class="col">
-                            <label for="number_of_pixels_in_width">
-                                Width px:
-                            </label>
-                            <div class="position-relative">
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="9999"
-                                    class="form-control short-input"
-                                    id="number_of_pixels_in_width"
-                                    name="number_of_pixels_in_width"
-                                    value="{{
-                                        request.args.get('number_of_pixels_in_width', '')
-                                    }}"
-                                    required
-                                />
-                                <i
-                                    class="fa fa-arrows-h input-icon"
-                                    aria-hidden="true"
-                                ></i>
-                            </div>
-                        </div>
-                        <div class="col">
                             <label for="number_of_pixels_in_height">
                                 Height px:
                             </label>
@@ -258,6 +232,29 @@
                                 />
                                 <i
                                     class="fa fa-arrows-v input-icon"
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label for="number_of_pixels_in_width">
+                                Width px:
+                            </label>
+                            <div class="position-relative">
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="9999"
+                                    class="form-control short-input"
+                                    id="number_of_pixels_in_width"
+                                    name="number_of_pixels_in_width"
+                                    value="{{
+                                        request.args.get('number_of_pixels_in_width', '')
+                                    }}"
+                                    required
+                                />
+                                <i
+                                    class="fa fa-arrows-h input-icon"
                                     aria-hidden="true"
                                 ></i>
                             </div>

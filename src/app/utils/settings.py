@@ -19,13 +19,23 @@ def load_config():
     Returns:
         None
     """
-    global ROUTE, STATIC_URL_PATH, SECRET_KEY
+    global ROUTE, STATIC_URL_PATH, SECRET_KEY, DEBUG
 
     load_dotenv()
 
     config = configparser.ConfigParser()
-    config.read("config.ini")
+    config_path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "..", "config.ini"
+    )
+    config.read(config_path)
 
     ROUTE = config.get("APP", "ROUTE")
     STATIC_URL_PATH = config.get("APP", "STATIC_URL_PATH")
     SECRET_KEY = os.environ.get("SECRET_KEY")
+
+    return {
+        "ROUTE": ROUTE,
+        "SECRET_KEY": SECRET_KEY,
+        "STATIC_URL_PATH": STATIC_URL_PATH,
+        "DEBUG": DEBUG,
+    }
