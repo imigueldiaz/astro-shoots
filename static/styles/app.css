@@ -235,3 +235,28 @@ input[type='number']::-moz-outer-spin-button {
 .suggestion-item:hover {
     background-color: #555;
 }
+h2 {
+    text-align: center; /* Align text to the center */
+    font-size: 1.5rem; /* Bigger font size */
+    font-weight: bold; /* Bold text */
+    color: #ffffff; /* Similar color to <legend> */
+    background-color: rgba(
+        68,
+        68,
+        68,
+        0.8
+    ); /* Similar background color to <legend> */
+    border-radius: 4px; /* Rounded corners similar to <legend> */
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide overflow content */
+    text-overflow: ellipsis; /* Add ellipsis if text overflows */
+    padding: 10px; /* Padding around the text */
+}
+#suggestion-list:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Example: subtle shadow */
+}
+.suggestion-item:focus {
+    outline: none;
+    background-color: #f0f0f0; /* Light gray background */
+}

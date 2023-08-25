@@ -1,12 +1,12 @@
 from datetime import datetime
+import json
 from flask import jsonify, render_template, request
-
-from data import dsoDict, jsonObjectList, initialize
 from forms import ObjectForm
 import settings
 from astropy.coordinates import EarthLocation
 import astropy.units as u
 from logger import log_exceptions
+from dsosearcher import DsoSearcher
 
 
 def initialize_routes(
@@ -17,30 +17,37 @@ def initialize_routes(
     get_alt_az,
     get_object_data,
 ):
-    @app.route(f"{settings.ROUTE}/search_objects")
     @log_exceptions(app)
+    @app.route(f"{settings.ROUTE}/search_objects", methods=["GET", "POST"])
     def search_objects():
-        if len(dsoDict) == 0:
-            initialize()
-
         query = request.args.get("query")
         if len(query) < 3:
             return jsonify([])
 
-        results = [
-            obj
-            for obj_id, obj in dsoDict.items()
-            if query.lower() in str(obj_id).lower()
-            or query.lower() in obj["name"].lower()
-        ]
+        # Using DsoSearcher to perform the search (returns JSON strings)
+        results = DsoSearcher.search(partial_name=query)
+        if not results:  # Handling the case where no results are found
+            return jsonify([])
 
-        suggestions = [
-            {
-                "name": f"{obj['name']} ({obj.get('other identifiers', {}).get('common names', ['No common name'])[0]})",
-                "id": obj["id"],
-            }
-            for obj in results
-        ]
+        # Parsing the JSON strings into dictionaries
+        parsed_results = [json.loads(result) for result in results]
+
+        # Constructing the suggestions in the same structure as before
+        suggestions = []
+        for obj in parsed_results:
+            other_identifiers = obj.get("other identifiers", {})
+            common_names = other_identifiers.get("common names")
+            if common_names:
+                common_name = common_names[0]
+            else:
+                common_name = obj["type"]
+
+            suggestions.append(
+                {
+                    "name": f"{obj['name']} ({common_name})",
+                    "id": obj["name"],
+                }
+            )
 
         return jsonify(suggestions)
 
@@ -87,7 +94,11 @@ def initialize_routes(
             max_shooting_time, real_max_shooting_time = calculate_max_shooting_time(
                 aperture, sensor_width_mm, number_of_pixels_in_width, focal_length
             )
-            num_shoots = calculate_number_of_shoots(
+            (
+                num_shoots,
+                total_time_minutes,
+                total_time_seconds,
+            ) = calculate_number_of_shoots(
                 altaz,
                 location,
                 ra,
@@ -123,7 +134,10 @@ def initialize_routes(
                 pa=pa,
                 camera_position=camera_position,
                 route=settings.ROUTE,
-                db_num_objects=len(jsonObjectList),
+                aperture=aperture,
+                focal_length=focal_length,
+                total_time_minutes=total_time_minutes,
+                total_time_seconds=total_time_seconds,
                 error=None,
             )
 
@@ -131,5 +145,5 @@ def initialize_routes(
             "index.html",
             error=form.errors,
             route=settings.ROUTE,
-            db_num_objects=len(jsonObjectList),
+            db_num_objects=DsoSearcher.count_objects(),
         )

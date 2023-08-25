@@ -111,21 +111,10 @@ def calculate_number_of_shoots(
     if np.ma.is_masked(size_major) or np.ma.is_masked(size_minor):
         return None
 
-    # Aplicar rotaciones a FOV
-    if camera_position == 0:
-        fov_rot_h = fov_width
-        fov_rot_v = fov_height
-
-    elif camera_position == 90:
-        fov_rot_h = fov_height
-        fov_rot_v = fov_width
-
-    elif camera_position == -90:
-        fov_rot_h = fov_height
-        fov_rot_v = fov_width
-
-    else:
-        fov_rot_h, fov_rot_v = rotate_fov(fov_width, fov_height, camera_position, PA)
+    # Applying rotation to FOV
+    fov_rot_h, fov_rot_v = apply_fov_rotation(
+        fov_width, fov_height, camera_position, PA
+    )
 
     available_altitude = abs(fov_rot_h - size_major) / 2
     available_azimuth = abs(fov_rot_v - size_minor) / 2
@@ -152,7 +141,35 @@ def calculate_number_of_shoots(
             break
         current_time = next_time
         altaz = new_altaz
-    return num_shots
+    total_time_seconds = num_shots * (exposure_time + shoot_interval)
+
+    # Convert the total time to minutes and seconds
+    total_time_minutes = int(round(total_time_seconds // 60))
+    total_time_seconds = int(round(total_time_seconds % 60))
+
+    return num_shots, total_time_minutes, total_time_seconds
+
+
+def apply_fov_rotation(fov_width, fov_height, camera_position, PA):
+    """
+    Apply field of view (FOV) rotation to the given FOV width, FOV height, camera position, and PA.
+
+    Parameters:
+        - fov_width (float): The width of the field of view.
+        - fov_height (float): The height of the field of view.
+        - camera_position (int): The position of the camera.
+        - PA (float): The PA value.
+
+    Returns:
+        - fov_rot_h (float): The rotated width of the field of view.
+        - fov_rot_v (float): The rotated height of the field of view.
+    """
+    if camera_position in [0, 90, -90]:
+        fov_rot_h = fov_width if camera_position == 0 else fov_height
+        fov_rot_v = fov_height if camera_position == 0 else fov_width
+    else:
+        fov_rot_h, fov_rot_v = rotate_fov(fov_width, fov_height, camera_position, PA)
+    return fov_rot_h, fov_rot_v
 
 
 def rotate_fov(fov_width, fov_height, camera_position, PA):
@@ -180,16 +197,16 @@ def rotate_fov(fov_width, fov_height, camera_position, PA):
 
     PA_sin = np.sin(PA_rad)
     PA_cos = np.cos(PA_rad)
-    # Matriz de rotación basada en posición de cámara
+    # rotation matrix based on camera position
     CP_rot_matrix = np.array([[CP_cos, -CP_sin], [CP_sin, CP_cos]])
 
-    # Matriz de rotación basada en ángulo de posición
+    # rotation matrix based on PA
     PA_rot_matrix = np.array([[PA_cos, -PA_sin], [PA_sin, PA_cos]])
 
-    # Aplicar rotaciones
+    # Apply rotation
     fov_rotated = CP_rot_matrix @ PA_rot_matrix @ [[fov_width], [fov_height]]
 
-    # Desempacar y convertir a escalares
+    # unpack and convert to float
     fov_rot_h = float(fov_rotated[0])
     fov_rot_v = float(fov_rotated[1])
 

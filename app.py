@@ -1,4 +1,3 @@
-from functools import wraps
 from flask import Flask
 
 import settings
@@ -38,6 +37,9 @@ def create_app():
     app = Flask(__name__, static_url_path=settings.STATIC_URL_PATH)
     app.config["SECRET_KEY"] = settings.SECRET_KEY
     app.config["DEBUG"] = settings.DEBUG
+
+    app.dsoDict = {}
+    app.jsonObjectList = []
 
     init_logging(app)
     init_limiter(app)

@@ -131,38 +131,70 @@ document.addEventListener('DOMContentLoaded', function () {
 
     objectNameInput.parentNode.appendChild(suggestionList);
 
-    objectNameInput.addEventListener('input', function () {
-        const query = objectNameInput.value.trim();
+    function debounce(func, delay) {
+        let timeoutId;
+        return function (...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
 
-        if (query.length < 3) {
-            suggestionList.innerHTML = '';
-            return;
-        }
+    objectNameInput.addEventListener(
+        'input',
+        debounce(function () {
+            const query = objectNameInput.value.trim();
 
-        fetch(`${appRoute}/search_objects?query=${query}`)
-            .then((response) => response.json())
-            .then((suggestions) => {
+            if (query.length < 3) {
                 suggestionList.innerHTML = '';
+                return;
+            }
 
-                suggestions.forEach((suggestion) => {
-                    const item = document.createElement('div');
-                    item.className = 'suggestion-item';
-                    item.textContent = suggestion.name;
+            fetch(`${appRoute}/search_objects?query=${query}`)
+                .then((response) => response.json())
+                .then((suggestions) => {
+                    suggestionList.innerHTML = '';
 
-                    item.addEventListener('click', function () {
-                        objectNameInput.value = suggestion.name;
+                    suggestions.forEach((suggestion, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'suggestion-item';
+                        item.textContent = suggestion.name;
+                        item.tabIndex = 0; // Enable tab navigation
 
-                        const objectIdInput =
-                            document.getElementById('object_id');
-                        objectIdInput.value = suggestion.id;
+                        // Click event handler
+                        item.addEventListener('click', function () {
+                            objectNameInput.value = suggestion.name;
+                            const objectIdInput =
+                                document.getElementById('object_id');
+                            objectIdInput.value = suggestion.id;
+                            suggestionList.innerHTML = '';
+                        });
 
-                        suggestionList.innerHTML = '';
+                        // Keydown event handler for arrow navigation
+                        item.addEventListener('keydown', function (e) {
+                            if (e.key === 'ArrowDown') {
+                                if (index < suggestions.length - 1) {
+                                    suggestionList.children[index + 1].focus();
+                                }
+                            } else if (e.key === 'ArrowUp') {
+                                if (index > 0) {
+                                    suggestionList.children[index - 1].focus();
+                                }
+                            }
+                        });
+
+                        // Mouseover event handler for hover selection
+                        item.addEventListener('mouseover', function () {
+                            objectNameInput.value = suggestion.name;
+                            const objectIdInput =
+                                document.getElementById('object_id');
+                            objectIdInput.value = suggestion.id;
+                        });
+
+                        suggestionList.appendChild(item);
                     });
-
-                    suggestionList.appendChild(item);
                 });
-            });
-    });
+        }, 300),
+    ); // 300 milliseconds delay
 });
 
 window.onload = getLocation;

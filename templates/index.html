@@ -17,14 +17,10 @@
             const appRoute = '{{ route }}';
         </script>
 
-        <script
-            defer
-            src="{{ url_for('static', filename='scripts/fontawesome/solid.min.js') }}"
-        ></script>
-        <script
-            defer
-            src="{{ url_for('static', filename='scripts/fontawesome/fontawesome.min.js') }}"
-        ></script>
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/forkawesome/fork-awesome.min.css') }}"
+        />
 
         <link
             rel="stylesheet"
@@ -81,7 +77,10 @@
                                     value="{{ request.args.get('object_name', '') }}"
                                     required
                                 />
-                                <i class="fa-solid fa-search input-icon"></i>
+                                <i
+                                    class="fa fa-search input-icon"
+                                    aria-hidden="true"
+                                ></i>
                             </div>
                         </div>
                     </div>
@@ -188,7 +187,8 @@
                                     required
                                 />
                                 <i
-                                    class="fa-solid fa-ruler-vertical input-icon"
+                                    class="fa fa-arrows-v input-icon"
+                                    aria-hidden="true"
                                 ></i>
                             </div>
                         </div>
@@ -209,7 +209,8 @@
                                     required
                                 />
                                 <i
-                                    class="fa-solid fa-ruler-horizontal input-icon"
+                                    class="fa fa-arrows-h input-icon"
+                                    aria-hidden="true"
                                 ></i>
                             </div>
                         </div>
@@ -233,7 +234,8 @@
                                     required
                                 />
                                 <i
-                                    class="fa-solid fa-arrows-left-right input-icon"
+                                    class="fa fa-arrows-h input-icon"
+                                    aria-hidden="true"
                                 ></i>
                             </div>
                         </div>
@@ -255,7 +257,8 @@
                                     required
                                 />
                                 <i
-                                    class="fa-solid fa-arrows-up-down input-icon"
+                                    class="fa fa-arrows-v input-icon"
+                                    aria-hidden="true"
                                 ></i>
                             </div>
                         </div>
@@ -278,7 +281,8 @@
                                     required
                                 />
                                 <i
-                                    class="fa-solid fa-binoculars input-icon"
+                                    class="fa fa-eye input-icon"
+                                    aria-hidden="true"
                                 ></i>
                             </div>
                         </div>
@@ -293,9 +297,12 @@
                                     data-selected-value="{{ request.args.get('aperture', '') }}"
                                 ></select>
                                 <i
-                                    class="fa-solid fa-caret-down select-arrow-icon"
+                                    class="fa fa-caret-down select-arrow-icon"
                                 ></i>
-                                <i class="fa-solid fa-aperture input-icon"></i>
+                                <i
+                                    class="fa fa-camera input-icon"
+                                    aria-hidden="true"
+                                ></i>
                             </div>
                         </div>
                     </div>
@@ -313,7 +320,10 @@
                                     value="{{ request.args.get('shoot_interval', '') }}"
                                     required
                                 />
-                                <i class="fa-solid fa-stopwatch input-icon"></i>
+                                <i
+                                    class="fa fa-clock-o input-icon"
+                                    aria-hidden="true"
+                                ></i>
                             </div>
                         </div>
                         <div class="col">
@@ -363,11 +373,12 @@
                                     </option>
                                 </select>
                                 <i
-                                    class="fa-solid fa-caret-down select-arrow-icon"
+                                    class="fa fa-caret-down select-arrow-icon"
                                 ></i>
 
                                 <i
-                                    class="fa-solid fa-camera-rotate input-icon"
+                                    class="fa fa-repeat input-icon"
+                                    aria-hidden="true"
                                 ></i>
                             </div>
                         </div>

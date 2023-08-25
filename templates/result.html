@@ -22,6 +22,7 @@
                 Number of untracked astrophotography shoots results for {{
                 object_name }}
             </h1>
+            <h2>Data computed for {{aperture}}/f {{focal_length}}mm</h2>
             <table class="result-table">
                 {% if camera_position == 90 or camera_position == -90 %}
 
@@ -118,6 +119,13 @@
                     </th>
                     <td class="variable">
                         {{ real_max_shooting_time|format_float }}s
+                    </td>
+                </tr>
+                <tr>
+                    <th>Maximum session time.</th>
+                    <td class="variable">
+                        {{ "{:02}".format(total_time_minutes)}}&prime; {{
+                        "{:02}".format(total_time_seconds)}}&Prime;
                     </td>
                 </tr>
                 <tr>

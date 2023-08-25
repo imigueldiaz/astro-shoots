@@ -1,8 +1,9 @@
 import datetime
+import json
 from astropy.coordinates import AltAz, SkyCoord
 import astropy.units as u
 from astropy.time import Time
-from data import dsoDict
+from dsosearcher import DsoSearcher
 
 
 def get_object_data(object_id):
@@ -21,17 +22,13 @@ def get_object_data(object_id):
     - pa (float): The position angle of the object.
     - error_message (str): An error message if the object ID is not found or if size data is missing.
     """
-    result = dsoDict.get(object_id)
+    result_json = DsoSearcher.get(object_id)
 
-    if result is None:
-        try:
-            object_id_int = int(object_id)
-            result = dsoDict.get(object_id_int)  # Try the integer version
-        except ValueError:
-            pass  # The ID could not be converted to an integer
-
-    if result is None:
+    if result_json is None:
         return None, None, None, None, None, None, f"Object {object_id} not found"
+
+    # Parsing the JSON string into a dictionary
+    result = json.loads(result_json)
 
     ra_hms = result["coordinates"]["right ascension"]
     dec_dms = result["coordinates"]["declination"]
@@ -43,12 +40,13 @@ def get_object_data(object_id):
     dec = coord.dec.deg
 
     # Find the common name among the identifiers
-    common_name = result["name"]
+    other_identifiers = result.get("other identifiers", {})
+    common_names = other_identifiers.get("common names", [result["type"]])
+    common_name = common_names[0] if common_names else result["type"]
 
-    if common_name:
-        object_id = f"{object_id} ({common_name})"
-    else:
-        object_id = f"{object_id}"
+    object_name = f"{result['name']} ({common_name})"
+
+    object_id = f"{object_id}"
 
     size_major = result["dimensions"]["major axis"]
     size_minor = result["dimensions"]["minor axis"]
@@ -68,7 +66,7 @@ def get_object_data(object_id):
             f"Size data is missing for {object_id}",
         )
 
-    return ra, dec, size_major, size_minor, object_id, pa, None
+    return ra, dec, size_major, size_minor, object_name, pa, None
 
 
 def get_alt_az(location, ra, dec, utc_datetime=None, min_altitude=0, min_speed=0.1):
