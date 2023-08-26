@@ -1,0 +1,99 @@
+{% extends 'base.html' %} {% block title %}Number of untracked shoots calculator
+- Results{% endblock %} {% block content %}
+<h1 class="my-4">{{ object_name }}</h1>
+<div class="observation_data">{{ observation_data }}</div>
+
+<table class="result-table">
+    {% if camera_position == 90 or camera_position == -90 %}
+
+    <tr>
+        <th>Camera FOV Height</th>
+        <td class="variable">{{ fov_width|format_float }}&prime;</td>
+    </tr>
+    <tr>
+        <th>Pixel height (arcsec/px)</th>
+        <td class="variable">{{ pixel_width|format_float}}&Prime;</td>
+    </tr>
+    <tr>
+        <th>Camera FOV Width</th>
+        <td class="variable">{{ fov_height|format_float }}&prime;</td>
+    </tr>
+    <tr>
+        <th>Pixel width (arcsec/px)</th>
+        <td class="variable">{{ pixel_height|format_float}}&Prime;</td>
+    </tr>
+
+    {% else %}
+
+    <tr>
+        <th>Camera FOV Width</th>
+        <td class="variable">{{ fov_width|format_float }}&prime;</td>
+    </tr>
+    <tr>
+        <th>Pixel width (arcsec/px)</th>
+        <td class="variable">{{ pixel_width|format_float}}&Prime;/px</td>
+    </tr>
+
+    <tr>
+        <th>Camera FOV Height</th>
+        <td class="variable">{{ fov_height|format_float }}&prime;</td>
+    </tr>
+
+    <tr>
+        <th>Pixel height (arcsec/px)</th>
+        <td class="variable">{{ pixel_height|format_float}}&Prime;/px</td>
+    </tr>
+    <tr>
+        <th>Camera angle over horizontal</th>
+        <td class="variable">{{ camera_position|format_float}}&deg;</td>
+    </tr>
+    {% endif %}
+    <tr>
+        <th>Camera shotting parameters</th>
+        <td class="variable">{{aperture}}/f {{focal_length}}mm</td>
+    </tr>
+
+    <tr>
+        <th>Major axis (a) of {{ object_name }}</th>
+        <td class="variable">{{ size_major|format_float }}&prime;</td>
+    </tr>
+    <tr>
+        <th>Minor axis (b) of {{ object_name }}</th>
+        <td class="variable">{{ size_minor|format_float }}&prime;</td>
+    </tr>
+    <tr>
+        <th>Position Angle (θ) of {{ object_name }}</th>
+        <td class="variable">{{ pa|format_float }}&deg;</td>
+    </tr>
+
+    <tr>
+        <th>
+            Maximum Shooting Time per Shoot (seconds) on
+            <sup>1</sup>&frasl;<sub>3</sub> steps
+        </th>
+        <td class="variable">{{ max_shooting_time|format_float }}s</td>
+    </tr>
+    <tr>
+        <th>Maximum Shooting Time per Shoot (seconds) calculated.</th>
+        <td class="variable">{{ real_max_shooting_time|format_float }}s</td>
+    </tr>
+    <tr>
+        <th>Maximum session time.</th>
+        <td class="variable">
+            {{ "{:02}".format(total_time_minutes)}}&prime; {{
+            "{:02}".format(total_time_seconds)}}&Prime;
+        </td>
+    </tr>
+    <tr>
+        <th><strong>Maximum Number of untracked shoots</strong></th>
+        <td class="variable"><strong>{{ num_shoots }}</strong></td>
+    </tr>
+</table>
+<br />
+<a
+    class="btn"
+    href="{{ url_for('index.index') }}"
+    >Back to form</a
+>
+
+{% endblock %}
