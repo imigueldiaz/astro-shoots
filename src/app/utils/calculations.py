@@ -1,3 +1,4 @@
+from datetime import timezone
 import math
 
 import numpy as np
@@ -87,6 +88,7 @@ def calculate_number_of_shoots(
     shoot_interval,
     camera_position,
     PA,
+    min_degrees,
 ):
     """
     Calculate the number of shoots required for a given set of parameters.
@@ -109,7 +111,7 @@ def calculate_number_of_shoots(
     - num_shots: The number of shoots required to cover the object.
     """
     if np.ma.is_masked(size_major) or np.ma.is_masked(size_minor):
-        return None
+        return None, 0, 0, "Size data is missing (masked)."
 
     # Applying rotation to FOV
     fov_rot_h, fov_rot_v = apply_fov_rotation(
@@ -123,7 +125,17 @@ def calculate_number_of_shoots(
     while True:
         # Calculate the new position of the object after shoot_interval and exposure_time
         next_time = current_time + (shoot_interval + exposure_time) * u.second
-        new_altaz = get_alt_az(location, ra, dec, next_time)
+        new_altaz, error = get_alt_az(
+            location,
+            ra,
+            dec,
+            next_time,
+            min_degrees=min_degrees,
+        )
+
+        if new_altaz is None:
+            return (None, 0, 0, error)
+
         avg_altitude_speed = (
             abs(new_altaz.alt.degree - altaz.alt.degree) * 60 / shoot_interval
         )
@@ -147,7 +159,7 @@ def calculate_number_of_shoots(
     total_time_minutes = int(round(total_time_seconds // 60))
     total_time_seconds = int(round(total_time_seconds % 60))
 
-    return num_shots, total_time_minutes, total_time_seconds
+    return num_shots, total_time_minutes, total_time_seconds, None
 
 
 def apply_fov_rotation(fov_width, fov_height, camera_position, PA):

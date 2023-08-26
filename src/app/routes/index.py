@@ -12,6 +12,7 @@ def create_index_blueprint(
     get_alt_az,
     calculate_max_shooting_time,
     calculate_number_of_shoots,
+    count_dso,
 ):
     index_bp = Blueprint("index", __name__)
 
@@ -42,7 +43,11 @@ def create_index_blueprint(
             return render_template("result.html", **result)
 
         return render_template(
-            "index.html", form=form, route=ROUTE
+            "index.html",
+            form=form,
+            route=ROUTE,
+            cookies=request.cookies,
+            db_num_objects=count_dso(),
         )  # Pass the form object
 
     return index_bp

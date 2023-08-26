@@ -1,6 +1,13 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, IntegerField, SubmitField, HiddenField
-from wtforms.validators import DataRequired, NumberRange, InputRequired
+from wtforms import (
+    StringField,
+    FloatField,
+    IntegerField,
+    SubmitField,
+    HiddenField,
+    DateField,
+)
+from wtforms.validators import DataRequired, NumberRange, InputRequired, Optional
 
 
 class ObjectForm(FlaskForm):
@@ -36,5 +43,15 @@ class ObjectForm(FlaskForm):
     camera_position = IntegerField(
         "Camera Position", validators=[InputRequired(), NumberRange(-90, 90)]
     )
+
+    observation_date = DateField(
+        "Observation Date", validators=[DataRequired()], format="%Y-%m-%d"
+    )
+    min_degrees = FloatField(
+        "Minimum Degrees (over the horizon)",
+        validators=[InputRequired(), NumberRange(0, 90)],
+        default=5,
+    )
+    altitude = FloatField("Altitude", validators=[Optional(), NumberRange(0, 9999)])
     object_id = HiddenField()
     submit = SubmitField("Submit")

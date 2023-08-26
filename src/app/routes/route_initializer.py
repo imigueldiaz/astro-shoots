@@ -13,6 +13,7 @@ def initialize_routes(
     calculate_number_of_shoots,
     get_alt_az,
     get_object_data,
+    count_dso,
 ):
     index_bp = create_index_blueprint(
         ROUTE,
@@ -21,6 +22,7 @@ def initialize_routes(
         get_alt_az,
         calculate_max_shooting_time,
         calculate_number_of_shoots,
+        count_dso,
     )
     search_objects_bp = create_search_objects_blueprint(ROUTE)
 

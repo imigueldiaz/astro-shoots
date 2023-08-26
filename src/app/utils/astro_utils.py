@@ -1,9 +1,33 @@
-import datetime
 import json
 from astropy.coordinates import AltAz, SkyCoord
 import astropy.units as u
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 from app.search.dsosearcher import DsoSearcher
+from astral import LocationInfo
+import astral.sun
+
+from datetime import datetime, timedelta, timezone
+
+
+def find_next_nighttime(location, observation_date, dawnTime=True):
+    latitude, longitude = location.lat.deg, location.lon.deg
+    l = LocationInfo("name", "region", "timezone/name", latitude, longitude)
+    night_time, dawn_time = astral.sun.night(l.observer, date=observation_date)
+
+    # Extract the time components from the Time object
+    if dawnTime:
+        selected_time = dawn_time.time()
+    else:
+        selected_time = night_time.time()
+
+    # Combine the observation_date (a date object) with the time components
+    combined_datetime = datetime.combine(observation_date, selected_time)
+
+    return combined_datetime  # This will return the combined datetime object
+
+
+def count_dso():
+    return DsoSearcher.count_objects()
 
 
 def get_object_data(object_id):
@@ -69,38 +93,37 @@ def get_object_data(object_id):
     return ra, dec, size_major, size_minor, object_name, pa, None
 
 
-def get_alt_az(location, ra, dec, utc_datetime=None, min_altitude=0, min_speed=0.1):
-    """
-    Calculate the altitude and azimuth of a celestial object at a given location and time.
+def get_alt_az(location, ra, dec, observation_datetime=None, min_degrees=5):
+    print(f"RA: {ra}, Dec: {dec}")
 
-    Parameters:
-    - location (SkyCoord): The coordinates of the observer's location.
-    - ra (float): The right ascension of the celestial object in hour angle.
-    - dec (float): The declination of the celestial object in degrees.
-    - utc_datetime (datetime, optional): The UTC date and time of observation. If not specified, the current UTC date and time will be used.
-    - min_altitude (float, optional): The minimum altitude of the celestial object in degrees. Default is 0.
-    - min_speed (float, optional): The minimum speed of change in altitude and azimuth in degrees per minute. Default is 0.1.
+    if observation_datetime is None:
+        observation_datetime = datetime.utcnow().replace(tzinfo=timezone.utc)
 
-    Returns:
-    - altaz (AltAz): The altitude and azimuth of the celestial object at the specified time and location.
-    """
-    if utc_datetime is None:
-        utc_datetime = datetime.utcnow()
+    # Convert datetime to Time object if needed
+    if not isinstance(observation_datetime, Time):
+        observation_datetime = Time(observation_datetime)
+
     obj = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.deg))
+    current_time = observation_datetime
+
+    # Add one day to the current time
+    next_day_time = current_time + TimeDelta(1 * 24 * 60 * 60, format="sec")
+
+    # Find the astronomical dawn of the next day
+    next_day_dawn = find_next_nighttime(location, next_day_time.datetime.date(), True)
+    limit_time = Time(next_day_dawn)
 
     while True:
-        altaz = obj.transform_to(AltAz(location=location, obstime=Time(utc_datetime)))
-        if (altaz.alt.degree > min_altitude).any():
-            next_time = utc_datetime + datetime.timedelta(minutes=1)
-            next_altaz = obj.transform_to(
-                AltAz(location=location, obstime=Time(next_time))
-            )
-            avg_altitude_speed = (next_altaz.alt.degree - altaz.alt.degree) * 60
-            avg_azimuth_speed = (next_altaz.az.degree - altaz.az.degree) * 60
+        print(f"Current Time: {current_time}, Limit Time: {limit_time}")
 
-            if avg_altitude_speed > min_speed and avg_azimuth_speed > min_speed:
-                break
+        altaz = obj.transform_to(AltAz(location=location, obstime=current_time))
+        if altaz.alt.degree >= min_degrees or current_time >= limit_time:
+            break
+        current_time += TimeDelta(60, format="sec")  # Adds one minute
+    if altaz.alt.degree < min_degrees:
+        return (
+            None,
+            f"The object will not be visible as its altitude never reaches {min_degrees} degrees during the observation period.",
+        )
 
-        utc_datetime += datetime.timedelta(minutes=1)
-
-    return altaz
+    return altaz, None

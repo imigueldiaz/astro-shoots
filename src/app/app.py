@@ -7,7 +7,7 @@ from app.utils.calculations import (
     calculate_max_shooting_time,
     calculate_number_of_shoots,
 )
-from app.utils.astro_utils import get_alt_az, get_object_data
+from app.utils.astro_utils import get_alt_az, get_object_data, count_dso
 
 from app.utils.settings import load_config
 
@@ -72,6 +72,7 @@ initialize_routes(
     calculate_number_of_shoots,
     get_alt_az,
     get_object_data,
+    count_dso,
 )
 
 

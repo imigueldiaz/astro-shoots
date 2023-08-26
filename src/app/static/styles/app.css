@@ -260,3 +260,37 @@ h2 {
     outline: none;
     background-color: #f0f0f0; /* Light gray background */
 }
+#observation_data {
+    font-family: 'Courier New', Courier, monospace;
+    text-align: left;
+    padding-right: 20px;
+    font-size: 0.7rem;
+}
+.datetime-input {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    width: auto;
+}
+
+.integer-input {
+    font-size: 0.9rem;
+    padding: 6px 10px;
+    width: 50px;
+    text-align: center;
+}
+
+.number-input {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    width: 60px;
+    text-align: center;
+}
+/* Enhanced styling for observation_data div */
+.observation_data {
+    font-size: 1rem; /* Not too large to overflow, but large enough to read */
+    color: #ffd700; /* Gold color for better visibility */
+    background-color: #333; /* Dark background to reduce glare */
+    padding: 10px; /* Padding for better layout */
+    border-radius: 5px; /* Rounded corners */
+    text-align: center;
+}

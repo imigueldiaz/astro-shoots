@@ -61,6 +61,11 @@ function getLocation() {
 function setPosition(position) {
     const latitude = position.coords.latitude.toFixed(6);
     const longitude = position.coords.longitude.toFixed(6);
+    const altitude = position.coords.altitude
+        ? position.coords.altitude.toFixed(6)
+        : 0;
+    document.getElementById('altitude').value = altitude;
+
     document.getElementById('latitude').value = latitude;
     document.getElementById('longitude').value = longitude;
 
@@ -198,3 +203,61 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 window.onload = getLocation;
+
+// Function to set a cookie
+function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+// Function to get a cookie
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const cookiesArray = document.cookie.split(';');
+    for (let i = 0; i < cookiesArray.length; i++) {
+        let c = cookiesArray[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+// Function to fill form fields from cookies
+function fillFieldsFromCookies() {
+    const formElements = document.forms[0].elements;
+    for (let i = 0; i < formElements.length; i++) {
+        const element = formElements[i];
+        if (element.name && element.name !== 'csrf_token') {
+            const cookieValue = getCookie(element.name);
+            if (cookieValue !== null) {
+                element.value = cookieValue;
+            }
+        }
+    }
+}
+
+// Function to update cookies when form is submitted
+function updateCookiesOnSubmit() {
+    const formElements = document.forms[0].elements;
+    for (let i = 0; i < formElements.length; i++) {
+        const element = formElements[i];
+        if (element.name && element.name !== 'csrf_token') {
+            setCookie(element.name, element.value, 30);  // set cookies to expire in 30 days
+        }
+    }
+}
+
+// Fill form fields from cookies on page load
+window.addEventListener('load', (event) => {
+    fillFieldsFromCookies();
+});
+
+// Update cookies when form is submitted
+document.forms[0].addEventListener('submit', (event) => {
+    updateCookiesOnSubmit();
+});
