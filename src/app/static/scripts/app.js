@@ -62,8 +62,8 @@ function setPosition(position) {
     const latitude = position.coords.latitude.toFixed(6);
     const longitude = position.coords.longitude.toFixed(6);
     const altitude = position.coords.altitude
-        ? position.coords.altitude.toFixed(6)
-        : 0;
+        ? position.coords.altitude.toFixed(0)
+        : '';
     document.getElementById('altitude').value = altitude;
 
     document.getElementById('latitude').value = latitude;

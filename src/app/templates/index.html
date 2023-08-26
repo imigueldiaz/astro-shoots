@@ -147,6 +147,8 @@ calculator{% endblock %} {% block content %}
                     name="observation_date"
                     type="date"
                     value='{{ cookies["observation_date"] or "" }}'
+                    required=""
+                    
                 />
             </div>
             <div class="col">
@@ -158,6 +160,9 @@ calculator{% endblock %} {% block content %}
                     placeholder="Minimum Degrees"
                     type="number"
                     value='{{ cookies["min_degrees"] or "" }}'
+                    required=""
+                    min="0"
+                    max="90"
                 />
             </div>
             <div class="col">
