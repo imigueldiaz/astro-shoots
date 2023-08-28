@@ -294,3 +294,23 @@ h2 {
     border-radius: 5px; /* Rounded corners */
     text-align: center;
 }
+.observation_data span {
+    display: block;
+}
+
+.logo-container {
+    text-align: center;
+    margin: 20px auto;
+}
+
+.logo-img {
+    max-width: 100%;
+    height: auto;
+    display: inline-block;
+}
+
+@media only screen and (max-width: 768px) {
+    .logo-img {
+        max-width: 80%;
+    }
+}

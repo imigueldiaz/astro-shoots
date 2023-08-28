@@ -1,7 +1,7 @@
 {% extends 'base.html' %} {% block title %}Number of untracked shoots calculator
 - Results{% endblock %} {% block content %}
 <h1 class="my-4">{{ object_name }}</h1>
-<div class="observation_data">{{ observation_data }}</div>
+<div class="observation_data">{{ observation_data|safe }}</div>
 
 <table class="result-table">
     {% if camera_position == 90 or camera_position == -90 %}

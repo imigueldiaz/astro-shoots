@@ -64,7 +64,11 @@ function setPosition(position) {
     const altitude = position.coords.altitude
         ? position.coords.altitude.toFixed(0)
         : '';
-    document.getElementById('altitude').value = altitude;
+    // Establecer el valor de altitude solo si está vacío
+    const altitudeInput = document.getElementById('altitude');
+    if (altitudeInput.value === '') {
+        altitudeInput.value = altitude;
+    }
 
     document.getElementById('latitude').value = latitude;
     document.getElementById('longitude').value = longitude;
@@ -204,60 +208,61 @@ document.addEventListener('DOMContentLoaded', function () {
 
 window.onload = getLocation;
 
-// Function to set a cookie
-function setCookie(name, value, days) {
-    let expires = "";
-    if (days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        expires = "; expires=" + date.toUTCString();
+/// Guardar datos del formulario en LocalStorage
+function saveFormDataToLocalStorage(formData) {
+    const nonCsrfFormValues = {};
+
+    for (const [key, value] of formData.entries()) {
+        if (key !== 'csrf_token' && value !== '') {
+            nonCsrfFormValues[key] = value;
+        }
     }
-    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+
+    // No guardar un valor vacío para altitude
+    if (nonCsrfFormValues.altitude === '') {
+        delete nonCsrfFormValues.altitude;
+    }
+
+    localStorage.setItem('formData', JSON.stringify(nonCsrfFormValues));
 }
 
-// Function to get a cookie
-function getCookie(name) {
-    const nameEQ = name + "=";
-    const cookiesArray = document.cookie.split(';');
-    for (let i = 0; i < cookiesArray.length; i++) {
-        let c = cookiesArray[i];
-        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
-}
+// Rellenar campos del formulario con datos de LocalStorage
+function fillFormFieldsFromLocalStorage() {
+    const savedFormData = JSON.parse(localStorage.getItem('formData'));
 
-// Function to fill form fields from cookies
-function fillFieldsFromCookies() {
-    const formElements = document.forms[0].elements;
-    for (let i = 0; i < formElements.length; i++) {
-        const element = formElements[i];
-        if (element.name && element.name !== 'csrf_token') {
-            const cookieValue = getCookie(element.name);
-            if (cookieValue !== null) {
-                element.value = cookieValue;
+    if (savedFormData) {
+        for (const key in savedFormData) {
+            if (key !== 'csrf_token') {
+                const inputElement = document.getElementById(key);
+                if (inputElement) {
+                    inputElement.value = savedFormData[key];
+                }
             }
         }
-    }
-}
 
-// Function to update cookies when form is submitted
-function updateCookiesOnSubmit() {
-    const formElements = document.forms[0].elements;
-    for (let i = 0; i < formElements.length; i++) {
-        const element = formElements[i];
-        if (element.name && element.name !== 'csrf_token') {
-            setCookie(element.name, element.value, 30);  // set cookies to expire in 30 days
+        // Manejar campos aperture y camera_position
+        const apertureSelect = document.querySelector('#aperture');
+        const cameraPositionSelect = document.querySelector('#camera_position');
+
+        if (savedFormData.aperture) {
+            apertureSelect.value = savedFormData.aperture;
+        } else {
+            apertureSelect.value = '1'; // Valor predeterminado
+        }
+
+        if (savedFormData.camera_position) {
+            cameraPositionSelect.value = savedFormData.camera_position;
+        } else {
+            cameraPositionSelect.value = '0'; // Valor predeterminado
         }
     }
 }
 
-// Fill form fields from cookies on page load
-window.addEventListener('load', (event) => {
-    fillFieldsFromCookies();
+// Actualizar LocalStorage al enviar el formulario
+document.forms[0].addEventListener('submit', (event) => {
+    const formData = new FormData(event.target);
+    saveFormDataToLocalStorage(formData);
 });
 
-// Update cookies when form is submitted
-document.forms[0].addEventListener('submit', (event) => {
-    updateCookiesOnSubmit();
-});
+// Rellenar campos del formulario al cargar la página
+window.addEventListener('load', fillFormFieldsFromLocalStorage);

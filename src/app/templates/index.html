@@ -17,7 +17,6 @@ calculator{% endblock %} {% block content %}
         id="object_id"
         name="object_id"
         type="hidden"
-        value='{{ cookies["object_id"] or "" }}'
     />
     <fieldset>
         <legend>Object to search</legend>
@@ -40,7 +39,6 @@ calculator{% endblock %} {% block content %}
                         name="object_name"
                         required=""
                         type="text"
-                        value='{{ cookies["object_name"] or "" }}'
                     />
                     <i
                         aria-hidden="true"
@@ -63,7 +61,6 @@ calculator{% endblock %} {% block content %}
                         name="latitude_deg"
                         placeholder="Degrees"
                         type="number"
-                        value='{{ cookies["latitude_deg"] or "" }}'
                     />
                 </div>
                 <div class="col">
@@ -73,7 +70,6 @@ calculator{% endblock %} {% block content %}
                         name="latitude_min"
                         placeholder="Minutes"
                         type="number"
-                        value='{{ cookies["latitude_min"] or "" }}'
                     />
                 </div>
                 <div class="col">
@@ -84,7 +80,6 @@ calculator{% endblock %} {% block content %}
                         placeholder="Seconds"
                         step="0.01"
                         type="number"
-                        value='{{ cookies["latitude_sec"] or "" }}'
                     />
                 </div>
             </div>
@@ -99,7 +94,6 @@ calculator{% endblock %} {% block content %}
                         name="longitude_deg"
                         placeholder="Degrees"
                         type="number"
-                        value='{{ cookies["longitude_deg"] or "" }}'
                     />
                 </div>
                 <div class="col">
@@ -109,7 +103,6 @@ calculator{% endblock %} {% block content %}
                         name="longitude_min"
                         placeholder="Minutes"
                         type="number"
-                        value='{{ cookies["longitude_min"] or "" }}'
                     />
                 </div>
                 <div class="col">
@@ -120,7 +113,6 @@ calculator{% endblock %} {% block content %}
                         placeholder="Seconds"
                         step="0.01"
                         type="number"
-                        value='{{ cookies["longitude_sec"] or "" }}'
                     />
                 </div>
             </div>
@@ -129,13 +121,11 @@ calculator{% endblock %} {% block content %}
             id="latitude"
             name="latitude"
             type="hidden"
-            value='{{ cookies["latitude"] or "" }}'
         />
         <input
             id="longitude"
             name="longitude"
             type="hidden"
-            value='{{ cookies["longitude"] or "" }}'
         />
         <!-- New row for date and minimum degrees -->
         <div class="row">
@@ -146,9 +136,7 @@ calculator{% endblock %} {% block content %}
                     id="observation_date"
                     name="observation_date"
                     type="date"
-                    value='{{ cookies["observation_date"] or "" }}'
                     required=""
-                    
                 />
             </div>
             <div class="col">
@@ -159,7 +147,6 @@ calculator{% endblock %} {% block content %}
                     name="min_degrees"
                     placeholder="Minimum Degrees"
                     type="number"
-                    value='{{ cookies["min_degrees"] or "" }}'
                     required=""
                     min="0"
                     max="90"
@@ -168,12 +155,11 @@ calculator{% endblock %} {% block content %}
             <div class="col">
                 <label for="altitude">Altitude:</label>
                 <input
-                    class="form-control integer-input"
+                    class="form-control dms-input"
                     id="altitude"
                     name="altitude"
                     placeholder="Altitude"
                     type="number"
-                    value='{{ cookies["altitude"] or "" }}'
                 />
             </div>
         </div>
@@ -193,7 +179,6 @@ calculator{% endblock %} {% block content %}
                         required=""
                         step="0.01"
                         type="number"
-                        value='{{ cookies["sensor_height_mm"] or "" }}'
                     />
                     <i
                         aria-hidden="true"
@@ -213,7 +198,6 @@ calculator{% endblock %} {% block content %}
                         required=""
                         step="0.01"
                         type="number"
-                        value='{{ cookies["sensor_width_mm"] or "" }}'
                     />
                     <i
                         aria-hidden="true"
@@ -234,7 +218,6 @@ calculator{% endblock %} {% block content %}
                         name="number_of_pixels_in_height"
                         required=""
                         type="number"
-                        value='{{ cookies["number_of_pixels_in_height"] or "" }}'
                     />
                     <i
                         aria-hidden="true"
@@ -253,7 +236,6 @@ calculator{% endblock %} {% block content %}
                         name="number_of_pixels_in_width"
                         required=""
                         type="number"
-                        value='{{ cookies["number_of_pixels_in_width"] or "" }}'
                     />
                     <i
                         aria-hidden="true"
@@ -277,7 +259,6 @@ calculator{% endblock %} {% block content %}
                         name="focal_length"
                         required=""
                         type="number"
-                        value='{{ cookies["focal_length"] or "" }}'
                     />
                     <i
                         aria-hidden="true"
@@ -290,7 +271,7 @@ calculator{% endblock %} {% block content %}
                 <div class="position-relative select-wrapper">
                     <select
                         class="form-control custom-select-aperture select-aperture"
-                        data-selected-value="{{ cookies["aperture"] or "" }}"
+                        data-selected-value=""
                         id="aperture"
                         name="aperture"
                         required=""
@@ -315,7 +296,6 @@ calculator{% endblock %} {% block content %}
                         name="shoot_interval"
                         required=""
                         type="number"
-                        value='{{ cookies["shoot_interval"] or "" }}'
                     />
                     <i
                         aria-hidden="true"
@@ -328,7 +308,7 @@ calculator{% endblock %} {% block content %}
                 <div class="position-relative select-wrapper">
                     <select
                         class="form-control custom-select-camera-position select-camera-position"
-                        data-selected-value="{{ cookies["camera_position"] or "0"}}"
+                        data-selected-value=""
                         id="camera_position"
                         name="camera_position"
                         required=""

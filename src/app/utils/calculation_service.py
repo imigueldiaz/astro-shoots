@@ -1,20 +1,35 @@
 from astropy.coordinates import EarthLocation
 import astropy.units as u
+from astropy.time import Time
+from app.utils.astro_utils import get_alt_az_at_degrees
 
-from app.utils.astro_utils import find_next_nighttime
+
+from astropy.coordinates import Angle
+from datetime import datetime, date
+from dateutil import tz
 
 
-def format_altaz_datetime(altaz_obj, observation_datetime):
+def format_altaz_datetime(ra, dec, altaz_obj, observation_datetime):
     """
-    Format the given altazimuth datetime.
+    Format the altitude and azimuth of a celestial object along with its right ascension and declination,
+    and the observation datetime, into a formatted string.
 
-    Args:
-        altaz_obj (AltAz): The altazimuth object to format.
-        observation_datetime (datetime): The observation datetime.
+    Parameters:
+        ra (float): The right ascension of the celestial object.
+        dec (float): The declination of the celestial object.
+        altaz_obj (AltAz): An AltAz object representing the altitude and azimuth of the celestial object.
+        observation_datetime (datetime): The datetime of the observation.
 
     Returns:
-        str: The formatted altazimuth datetime string in the format "AR: {ra_str} Dec: {dec_str} | Alt: {alt_str} Az: {az_str} | Visible at: {formatted_datetime}".
+        str: A formatted string containing the right ascension, declination, altitude, azimuth, and observation datetime.
     """
+    # Convert RA from degrees to hours
+    ra_hours = ra / 15
+
+    # Format RA and Dec using the Angle class
+    ra_angle = Angle(ra_hours, unit="hourangle")
+    dec_angle = Angle(dec, unit="deg")
+
     # Round the values to 2 decimal places
     alt = round(altaz_obj.alt.degree, 2)
     az = round(altaz_obj.az.degree, 2)
@@ -23,15 +38,9 @@ def format_altaz_datetime(altaz_obj, observation_datetime):
     alt_str = f"{alt:0.2f}"
     az_str = f"{az:0.2f}"
 
-    # Formatting RA and Dec
-    ra = round(altaz_obj.icrs.ra.degree, 2)
-    dec = round(altaz_obj.icrs.dec.degree, 2)
-    ra_str = f"{ra:0.2f}"
-    dec_str = f"{dec:0.2f}"
-
     formatted_datetime = observation_datetime.strftime("%Y-%m-%dT%H:%M") + "Z"
 
-    return f"AR: {ra_str} Dec: {dec_str} | Alt: {alt_str} Az: {az_str} | Visible at: {formatted_datetime}"
+    return f"<span>RA: {ra_angle.to_string(sep=':', pad=True)} Dec: {dec_angle.to_string(sep=':', pad=True, alwayssign=True)} | Alt: {alt_str} Az: {az_str} </span><span> Visible at: {formatted_datetime}</span>"
 
 
 def perform_astro_calculations(
@@ -58,6 +67,7 @@ def perform_astro_calculations(
     Returns:
         dict: A dictionary containing the calculated results and other relevant information.
     """
+    print(form_data)
     object_id = form_data["object_id"]
     ra, dec, size_major, size_minor, object_name, pa, error = get_object_data(object_id)
 
@@ -78,21 +88,33 @@ def perform_astro_calculations(
         )
 
     # Retrieve observation_date as a datetime.date object
+
     observation_date = form_data.get("observation_date")
     if observation_date is None:
         return {"error": "Observation date is missing from the form data."}
 
-    # Find the start of the astronomical night
-    observation_datetime = find_next_nighttime(location, observation_date, False)
+    # Asegurarse de que observation_date es un objeto datetime.datetime
+    if isinstance(observation_date, date) and not isinstance(
+        observation_date, datetime
+    ):
+        observation_datetime = datetime.combine(observation_date, datetime.min.time())
+    else:
+        observation_datetime = observation_date
 
-    min_degrees = float(form_data.get("min_degrees", 5))  # Default to 5 if not provided
+    # Establecer la zona horaria del objeto datetime a UTC
+    utc_timezone = tz.tzutc()
+    observation_datetime_utc = observation_datetime.replace(tzinfo=utc_timezone)
 
+    min_degrees = int(form_data.get("min_degrees", 5))  # Default to 5 if not provided
+
+    # Convertir el objeto datetime.datetime a un objeto Time de Astropy
+    observation_time_astropy = Time(observation_datetime_utc)
     # Pass observation_date and min_degrees to get_alt_az
-    altaz, error_message = get_alt_az(
+    altaz, error_message, visible_time = get_alt_az_at_degrees(
         location,
         ra,
         dec,
-        observation_datetime=observation_datetime,
+        observation_datetime=observation_time_astropy,
         min_degrees=min_degrees,
     )
 
@@ -161,7 +183,7 @@ def perform_astro_calculations(
         "focal_length": form_data["focal_length"],
         "total_time_minutes": total_time_minutes,
         "total_time_seconds": total_time_seconds,
-        "observation_data": format_altaz_datetime(altaz, observation_datetime),
+        "observation_data": format_altaz_datetime(ra, dec, altaz, visible_time),
         "min_degrees": min_degrees,
         "altitude": altitude,
         "error": None,

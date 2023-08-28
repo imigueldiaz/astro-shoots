@@ -47,11 +47,11 @@ class ObjectForm(FlaskForm):
     observation_date = DateField(
         "Observation Date", validators=[DataRequired()], format="%Y-%m-%d"
     )
-    min_degrees = FloatField(
+    min_degrees = IntegerField(
         "Minimum Degrees (over the horizon)",
         validators=[InputRequired(), NumberRange(0, 90)],
         default=5,
     )
-    altitude = FloatField("Altitude", validators=[Optional(), NumberRange(0, 9999)])
+    altitude = IntegerField("Altitude", validators=[Optional(), NumberRange(0, 9999)])
     object_id = HiddenField()
     submit = SubmitField("Submit")
