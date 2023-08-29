@@ -1,6 +1,7 @@
 # settings.py
 import configparser
 import os
+
 from dotenv import load_dotenv
 
 ROUTE = None
@@ -29,12 +30,12 @@ def load_config():
     )
     config.read(config_path)
 
-    ROUTE = config.get("APP", "ROUTE")
+    ROUTE = config.get("APP", "route")
     STATIC_URL_PATH = config.get("APP", "STATIC_URL_PATH")
     SECRET_KEY = os.environ.get("SECRET_KEY")
 
     return {
-        "ROUTE": ROUTE,
+        "route": ROUTE,
         "SECRET_KEY": SECRET_KEY,
         "STATIC_URL_PATH": STATIC_URL_PATH,
         "DEBUG": DEBUG,

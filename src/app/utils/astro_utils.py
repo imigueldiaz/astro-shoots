@@ -1,29 +1,71 @@
 import json
-from astropy.coordinates import AltAz, SkyCoord
+from datetime import datetime, timedelta
+
 import astropy.units as u
+import pytz
+from astroplan import Observer
+from astropy.coordinates import AltAz, SkyCoord
 from astropy.time import Time, TimeDelta
+
 from app.search.dsosearcher import DsoSearcher
-from astral import LocationInfo
-import astral.sun
-
-from datetime import datetime, timedelta, timezone
 
 
-def find_next_nighttime(location, observation_date, dawnTime=True):
-    latitude, longitude = location.lat.deg, location.lon.deg
-    l = LocationInfo("name", "region", "timezone/name", latitude, longitude)
-    night_time, dawn_time = astral.sun.night(l.observer, date=observation_date)
+def get_alt_az_at_degrees(
+    location: object,
+    ra: object,
+    dec: object,
+    observation_datetime: object,
+    min_degrees: object,
+) -> object:
+    # Initialize the observer
 
-    # Extract the time components from the Time object
-    if dawnTime:
-        selected_time = dawn_time.time()
-    else:
-        selected_time = night_time.time()
+    observer = Observer(location=location)
 
-    # Combine the observation_date (a date object) with the time components
-    combined_datetime = datetime.combine(observation_date, selected_time)
+    if isinstance(observation_datetime, datetime):
+        observation_datetime.replace(tzinfo=pytz.UTC)
 
-    return combined_datetime  # This will return the combined datetime object
+    # Convert observation_datetime to Time object
+    observation_time = Time(observation_datetime)
+
+    # Get astronomical night start and end times
+    start_time = observer.twilight_evening_astronomical(observation_time, which="next")
+    next_day = observation_time + TimeDelta(1, format="jd")
+    dawn_time = observer.twilight_morning_astronomical(next_day, which="nearest")
+
+    # Target object (RA is already in degrees, so we directly use it)
+    target = SkyCoord(ra=ra * u.deg, dec=dec * u.deg)
+
+    # Initialize time_step and current_time
+    time_step = TimeDelta(60, format="sec")  # 1-minute time step
+    current_time = start_time
+
+    observation_date_str = None
+
+    while current_time < dawn_time:
+        # Transform target to AltAz coordinates
+        target_altaz: AltAz = target.transform_to(
+            AltAz(obstime=current_time, location=location)
+        )
+
+        if target_altaz.alt >= min_degrees * u.deg:
+            return target_altaz, None, current_time.datetime
+
+        # Increment time
+        current_time += time_step
+
+    # If observation_datetime is a Python datetime object
+    if isinstance(observation_datetime, datetime):
+        observation_date_str = observation_datetime.date()
+
+    # If observation_datetime is an Astropy Time object
+    elif isinstance(observation_datetime, Time):
+        observation_date_str = observation_datetime.iso.split(" ")[0]
+
+    return (
+        None,
+        f"The object will not be visible on {observation_date_str} as its altitude never reaches {min_degrees} degrees during the observation period.",
+        None,
+    )
 
 
 def count_dso():
@@ -93,37 +135,38 @@ def get_object_data(object_id):
     return ra, dec, size_major, size_minor, object_name, pa, None
 
 
-def get_alt_az(location, ra, dec, observation_datetime=None, min_degrees=5):
-    print(f"RA: {ra}, Dec: {dec}")
+def get_alt_az(location, ra, dec, utc_datetime=None, min_altitude=0, min_speed=0.1):
+    """
+    Calculate the altitude and azimuth of a celestial object at a given location and time.
 
-    if observation_datetime is None:
-        observation_datetime = datetime.utcnow().replace(tzinfo=timezone.utc)
+    Parameters:
+    - location (SkyCoord): The coordinates of the observer's location.
+    - ra (float): The right ascension of the celestial object in hour angle.
+    - dec (float): The declination of the celestial object in degrees.
+    - utc_datetime (datetime, optional): The UTC date and time of observation. If not specified, the current UTC date and time will be used.
+    - min_altitude (float, optional): The minimum altitude of the celestial object in degrees. Default is 0.
+    - min_speed (float, optional): The minimum speed of change in altitude and azimuth in degrees per minute. Default is 0.1.
 
-    # Convert datetime to Time object if needed
-    if not isinstance(observation_datetime, Time):
-        observation_datetime = Time(observation_datetime)
-
+    Returns:
+    - altaz (AltAz): The altitude and azimuth of the celestial object at the specified time and location.
+    """
+    if utc_datetime is None:
+        utc_datetime = datetime.utcnow()
     obj = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.deg))
-    current_time = observation_datetime
-
-    # Add one day to the current time
-    next_day_time = current_time + TimeDelta(1 * 24 * 60 * 60, format="sec")
-
-    # Find the astronomical dawn of the next day
-    next_day_dawn = find_next_nighttime(location, next_day_time.datetime.date(), True)
-    limit_time = Time(next_day_dawn)
 
     while True:
-        print(f"Current Time: {current_time}, Limit Time: {limit_time}")
+        altaz = obj.transform_to(AltAz(location=location, obstime=Time(utc_datetime)))
+        if (altaz.alt.degree > min_altitude).any():
+            next_time = utc_datetime + timedelta(minutes=1)
+            next_altaz = obj.transform_to(
+                AltAz(location=location, obstime=Time(next_time))
+            )
+            avg_altitude_speed = (next_altaz.alt.degree - altaz.alt.degree) * 60
+            avg_azimuth_speed = (next_altaz.az.degree - altaz.az.degree) * 60
 
-        altaz = obj.transform_to(AltAz(location=location, obstime=current_time))
-        if altaz.alt.degree >= min_degrees or current_time >= limit_time:
-            break
-        current_time += TimeDelta(60, format="sec")  # Adds one minute
-    if altaz.alt.degree < min_degrees:
-        return (
-            None,
-            f"The object will not be visible as its altitude never reaches {min_degrees} degrees during the observation period.",
-        )
+            if avg_altitude_speed > min_speed and avg_azimuth_speed > min_speed:
+                break
+
+        utc_datetime += timedelta(minutes=1)
 
     return altaz, None

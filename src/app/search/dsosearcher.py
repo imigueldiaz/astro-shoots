@@ -1,10 +1,11 @@
 from typing import List
+
 from pyongc.ongc import Dso, _queryFetchMany, _queryFetchOne
 
 
 class DsoSearcher:
     @staticmethod
-    def search(partial_name: str) -> List[Dso]:
+    def search(partial_name: str) -> list[str]:
         """
         Searches for Dso objects based on a partial name.
 
@@ -15,7 +16,7 @@ class DsoSearcher:
             List[Dso]: A list of Dso objects that match the partial name.
         """
 
-        # Convert partial_name to uppercase to handle 'm' or 'ngc' in lowercase
+        # Convert partial_name toH0mOV4mP1r uppercase to handle 'm' or 'ngc' in lowercase
         partial_name = partial_name.upper()
 
         # Define the columns, tables, and parameters for the query
@@ -40,12 +41,12 @@ class DsoSearcher:
         return dso_objects
 
     @staticmethod
-    def count_objects(omitDups: bool = True) -> int:
+    def count_objects(omit_dupes: bool = True) -> int:
         """
         Counts the number of objects in the 'objects' table.
 
         Args:
-            None
+            omit_dupes (bool): Indicates if duplicates should be omitted
 
         Returns:
             int: The count of objects.
@@ -57,7 +58,7 @@ class DsoSearcher:
         cols = "COUNT(*)"
         tables = "objects"
         params = (
-            'type != "Dup"' if omitDups else "1 = 1"
+            'type != "Dup"' if omit_dupes else "1 = 1"
         )  # ! We omit Duplicates if needed
 
         # Use the _queryFetchOne function to execute the query
@@ -67,7 +68,7 @@ class DsoSearcher:
         return count[0]
 
     @staticmethod
-    def get(object_id) -> Dso:
+    def get(object_id) -> str:
         """
         Retrieves a Dso object based on the provided `object_id`.
 

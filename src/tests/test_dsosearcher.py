@@ -1,6 +1,8 @@
 import unittest
-from src.app.search.dsosearcher import DsoSearcher
+
 from pyongc.ongc import Dso
+
+from src.app.search.dsosearcher import DsoSearcher
 
 
 class TestSearch(unittest.TestCase):
@@ -32,7 +34,7 @@ class TestSearch(unittest.TestCase):
 
     def test_count_objects_with_dups(self):
         # Test counting the number of objects in the 'objects' table including duplicates
-        self.assertEqual(DsoSearcher.count_objects(omitDups=False), 13992)
+        self.assertEqual(DsoSearcher.count_objects(omit_dupes=False), 13992)
 
 
 if __name__ == "__main__":

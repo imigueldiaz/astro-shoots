@@ -1,17 +1,17 @@
 {% extends 'base.html' %} {% block title %}Number of untracked shoots calculator
-- Error{% endblock %} {% block content %}
-<h1 class="my-4">Error</h1>
-<table class="result-table">
-    <tr>
-        <th>Error Message</th>
-        <td class="variable">{{ error }}</td>
-    </tr>
-</table>
-<br />
-<a
-    class="btn"
-    href="{{ url_for('index.index') }}"
+    - Error{% endblock %} {% block content %}
+    <h1 class="my-4">Error</h1>
+    <table class="result-table">
+        <tr>
+            <th>Error Message</th>
+            <td class="variable">{{ error }}</td>
+        </tr>
+    </table>
+    <br/>
+    <a
+            class="btn"
+            href="{{ url_for('index.index') }}"
     >Back to form</a
->
+    >
 
 {% endblock %}

@@ -1,8 +1,9 @@
-from datetime import timezone
 import math
 
-import numpy as np
 import astropy.units as u
+import numpy as np
+from astropy.time import TimeDelta
+
 from .astro_utils import get_alt_az
 
 
@@ -92,24 +93,12 @@ def calculate_number_of_shoots(
 ):
     """
     Calculate the number of shoots required for a given set of parameters.
-
-    Parameters:
-    - altaz: The altaz object representing the current position of the telescope.
-    - location: The location of the telescope.
-    - ra: The right ascension of the object.
-    - dec: The declination of the object.
-    - fov_width: The width of the field of view.
-    - fov_height: The height of the field of view.
-    - size_major: The major size of the object.
-    - size_minor: The minor size of the object.
-    - exposure_time: The exposure time for each shoot.
-    - shoot_interval: The time interval between shoots.
-    - camera_position: The position of the camera.
-    - PA: The position angle.
-
-    Returns:
-    - num_shots: The number of shoots required to cover the object.
     """
+
+    # Ensure the time is in UTC
+    if altaz.obstime.scale != "utc":
+        raise ValueError("Time scale should be UTC.")
+
     if np.ma.is_masked(size_major) or np.ma.is_masked(size_minor):
         return None, 0, 0, "Size data is missing (masked)."
 
@@ -122,15 +111,22 @@ def calculate_number_of_shoots(
     available_azimuth = abs(fov_rot_v - size_minor) / 2
     current_time = altaz.obstime
     num_shoots = 0
+
     while True:
+        # Ensure the time is in UTC
+        if current_time.scale != "utc":
+            raise ValueError("Time scale should be UTC.")
+
         # Calculate the new position of the object after shoot_interval and exposure_time
-        next_time = current_time + (shoot_interval + exposure_time) * u.second
+        next_time = current_time + TimeDelta(
+            (shoot_interval + exposure_time) * u.second
+        )
+
         new_altaz, error = get_alt_az(
             location,
             ra,
             dec,
             next_time,
-            min_degrees=min_degrees,
         )
 
         if new_altaz is None:
@@ -142,24 +138,30 @@ def calculate_number_of_shoots(
         avg_azimuth_speed = (
             abs(new_altaz.az.degree - altaz.az.degree) * 60 / shoot_interval
         )
+
         max_movement_altitude = available_altitude / abs(avg_altitude_speed)
         max_movement_azimuth = available_azimuth / abs(avg_azimuth_speed)
+
         total_time_available = (
             min(max_movement_altitude, max_movement_azimuth) * shoot_interval
-        )  # Convert minutes to seconds
+        )
+
         total_time_per_shot = exposure_time + shoot_interval
-        num_shots = max(0, total_time_available // total_time_per_shot)
-        if num_shots > 0:
+        num_shoots = max(0, total_time_available // total_time_per_shot)
+
+        if num_shoots > 0:
             break
+
         current_time = next_time
         altaz = new_altaz
-    total_time_seconds = num_shots * (exposure_time + shoot_interval)
+
+    total_time_seconds = num_shoots * (exposure_time + shoot_interval)
 
     # Convert the total time to minutes and seconds
     total_time_minutes = int(round(total_time_seconds // 60))
     total_time_seconds = int(round(total_time_seconds % 60))
 
-    return num_shots, total_time_minutes, total_time_seconds, None
+    return int(num_shoots), total_time_minutes, total_time_seconds, None
 
 
 def apply_fov_rotation(fov_width, fov_height, camera_position, PA):
