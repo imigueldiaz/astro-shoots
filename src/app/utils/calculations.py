@@ -1,10 +1,10 @@
-from datetime import timezone
 import math
 
-import numpy as np
 import astropy.units as u
+import numpy as np
+from astropy.time import TimeDelta
+
 from .astro_utils import get_alt_az
-from astropy.time import Time, TimeDelta
 
 
 def calculate_camera_fov(

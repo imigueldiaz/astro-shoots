@@ -91,6 +91,7 @@ function setPosition(position) {
     document.getElementById('longitude_min').value = lonMin;
     document.getElementById('longitude_sec').value = lonSec;
 }
+
 function generateApertureOptions() {
     const apertures = [
         1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.5, 2.8, 3.2, 3.5, 4.0, 4.5,
@@ -152,11 +153,6 @@ document.addEventListener('DOMContentLoaded', function () {
         'input',
         debounce(function () {
             const query = objectNameInput.value.trim();
-
-            if (query.length < 3) {
-                suggestionList.innerHTML = '';
-                return;
-            }
 
             fetch(`${appRoute}/search_objects?query=${query}`)
                 .then((response) => response.json())

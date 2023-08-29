@@ -1,5 +1,6 @@
 # initialize.py
 import logging
+
 from flask_limiter import Limiter
 from flask_talisman import Talisman
 from flask_wtf.csrf import CSRFProtect

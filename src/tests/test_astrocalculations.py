@@ -1,13 +1,8 @@
 import unittest
+from datetime import datetime
 from unittest.mock import patch
-from datetime import datetime, timezone
-from src.app.utils.astro_utils import get_alt_az, find_next_nighttime, get_object_data
-from src.app.utils.calculation_service import perform_astro_calculations
-from src.app.utils.calculations import (
-    calculate_camera_fov,
-    calculate_max_shooting_time,
-    calculate_number_of_shoots,
-)
+
+from src.app.utils.astro_utils import get_alt_az, get_object_data
 
 
 class TestAstroCalculations(unittest.TestCase):

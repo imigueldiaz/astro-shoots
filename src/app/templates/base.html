@@ -1,54 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta
+<head>
+    <meta charset="UTF-8"/>
+    <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0"
-        />
-        <title>{% block title %}Default Title{% endblock %}</title>
-        <link
+    />
+    <title>{% block title %}Default Title{% endblock %}</title>
+    <link
             rel="stylesheet"
             href="{{ url_for('static', filename='styles/bootstrap/bootstrap.min.css') }}"
-        />
+    />
 
-        <script>
-            const appRoute = '{{ route }}';
-        </script>
+    <script>
+        const appRoute = '{{ route }}';
+    </script>
 
-        <link
+    <link
             rel="stylesheet"
             href="{{ url_for('static', filename='styles/forkawesome/fork-awesome.min.css') }}"
-        />
+    />
 
-        <link
+    <link
             rel="stylesheet"
             href="{{ url_for('static', filename='styles/app.css') }}"
-        />
-        {% block additional_head %}{% endblock %}
-    </head>
-    <body>
-        <div class="container">
-            <div class="logo-container">
-                <picture>
-                    <source
-                        srcset="{{ url_for('static', filename='images/logo.webp') }}"
-                        type="image/webp"
-                        class="logo-img"
-                    />
-                    <img
-                        src="{{ url_for('static', filename='images/logo.png') }}"
-                        alt="Logo"
-                        class="logo-img"
-                    />
-                </picture>
-            </div>
+    />
+    {% block additional_head %}{% endblock %}
+</head>
+<body>
+<div class="container">
+    <div class="flex-container">
+        <div class="logo-container">
 
-            {% block content %}
-            <!-- Content goes here -->
-            {% endblock %}
+            <picture>
+
+                <source type="image/webp" src="{{ url_for('static', filename='images/logo.webp') }}"/>
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+            </picture>
+
+
         </div>
+        <div class="text-container">
+            <h1>Number of untracked shoots calculator</h1>
+        </div>
+    </div>
+    {% block content %}
+        <!-- Content goes here -->
+    {% endblock %}
+</div>
 
-        {% block additional_scripts %}{% endblock %}
-    </body>
+{% block additional_scripts %}{% endblock %}
+</body>
 </html>

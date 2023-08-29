@@ -2,16 +2,23 @@ import json
 from datetime import datetime, timedelta
 
 import astropy.units as u
+import pytz
 from astroplan import Observer
 from astropy.coordinates import AltAz, SkyCoord
 from astropy.time import Time, TimeDelta
-import pytz
 
 from app.search.dsosearcher import DsoSearcher
 
 
-def get_alt_az_at_degrees(location, ra, dec, observation_datetime, min_degrees):
+def get_alt_az_at_degrees(
+    location: object,
+    ra: object,
+    dec: object,
+    observation_datetime: object,
+    min_degrees: object,
+) -> object:
     # Initialize the observer
+
     observer = Observer(location=location)
 
     if isinstance(observation_datetime, datetime):
@@ -32,9 +39,11 @@ def get_alt_az_at_degrees(location, ra, dec, observation_datetime, min_degrees):
     time_step = TimeDelta(60, format="sec")  # 1-minute time step
     current_time = start_time
 
+    observation_date_str = None
+
     while current_time < dawn_time:
         # Transform target to AltAz coordinates
-        target_altaz = target.transform_to(
+        target_altaz: AltAz = target.transform_to(
             AltAz(obstime=current_time, location=location)
         )
 
@@ -45,7 +54,6 @@ def get_alt_az_at_degrees(location, ra, dec, observation_datetime, min_degrees):
         current_time += time_step
 
     # If observation_datetime is a Python datetime object
-
     if isinstance(observation_datetime, datetime):
         observation_date_str = observation_datetime.date()
 
