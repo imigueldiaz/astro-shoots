@@ -22,7 +22,8 @@ def create_index_blueprint(
         form = ObjectForm()
         if form.validate_on_submit():
             form_data = {
-                field_name: getattr(form, field_name).data for field_name in form.fields
+                field_name: getattr(form, field_name).data
+                for field_name in form._fields
             }
 
             result = perform_astro_calculations(

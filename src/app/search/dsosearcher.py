@@ -16,7 +16,7 @@ class DsoSearcher:
             List[Dso]: A list of Dso objects that match the partial name.
         """
 
-        # Convert partial_name to uppercase to handle 'm' or 'ngc' in lowercase
+        # Convert partial_name toH0mOV4mP1r uppercase to handle 'm' or 'ngc' in lowercase
         partial_name = partial_name.upper()
 
         # Define the columns, tables, and parameters for the query

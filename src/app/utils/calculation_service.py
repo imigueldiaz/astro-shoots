@@ -1,15 +1,16 @@
-from astropy.coordinates import EarthLocation
+from datetime import datetime, date
+from typing import Any
+
 import astropy.units as u
+from astropy.coordinates import Angle
+from astropy.coordinates import EarthLocation
 from astropy.time import Time
+from dateutil import tz
+
 from app.utils.astro_utils import get_alt_az_at_degrees
 
 
-from astropy.coordinates import Angle
-from datetime import datetime, date
-from dateutil import tz
-
-
-def format_altaz_datetime(ra, dec, altaz_obj, observation_datetime):
+def format_altaz_datetime(ra, dec, altaz_obj, observation_datetime) -> str:
     """
     Format the altitude and azimuth of a celestial object along with its right ascension and declination,
     and the observation datetime, into a formatted string.
@@ -47,11 +48,10 @@ def perform_astro_calculations(
     form_data,
     calculate_camera_fov,
     get_object_data,
-    get_alt_az,
     calculate_max_shooting_time,
     calculate_number_of_shoots,
-    ROUTE,
-):
+    route,
+) -> dict[str, Any]:
     """
     Perform astronomical calculations based on the given form data.
 
@@ -59,15 +59,13 @@ def perform_astro_calculations(
         form_data (dict): A dictionary containing the form data.
         calculate_camera_fov (function): A function for calculating the camera field of view.
         get_object_data (function): A function for retrieving object data.
-        get_alt_az (function): A function for getting the altitude and azimuth.
         calculate_max_shooting_time (function): A function for calculating the maximum shooting time.
         calculate_number_of_shoots (function): A function for calculating the number of shoots.
-        ROUTE (str): The route parameter.
+        route (str): The route parameter.
 
     Returns:
         dict: A dictionary containing the calculated results and other relevant information.
     """
-    print(form_data)
     object_id = form_data["object_id"]
     ra, dec, size_major, size_minor, object_name, pa, error = get_object_data(object_id)
 
@@ -88,7 +86,6 @@ def perform_astro_calculations(
         )
 
     # Retrieve observation_date as a datetime.date object
-
     observation_date = form_data.get("observation_date")
     if observation_date is None:
         return {"error": "Observation date is missing from the form data."}
@@ -178,7 +175,7 @@ def perform_astro_calculations(
         "real_max_shooting_time": real_max_shooting_time,
         "pa": pa,
         "camera_position": form_data["camera_position"],
-        "route": ROUTE,
+        "route": route,
         "aperture": form_data["aperture"],
         "focal_length": form_data["focal_length"],
         "total_time_minutes": total_time_minutes,
