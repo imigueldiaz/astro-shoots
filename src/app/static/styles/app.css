@@ -102,6 +102,8 @@ legend {
 .btn-calculate {
     background-color: #007bff;
     font-size: 1.1rem;
+    margin-top: .2rem;
+    margin-bottom: .8rem;
 }
 
 .btn-calculate:hover {
@@ -336,4 +338,57 @@ h2 {
 .text-container h1 {
     font-size: 1.8rem;
     font-weight: lighter;
+}
+
+/* Responsive Image */
+.logo-container img {
+    width: 100%;
+    height: auto;
+}
+
+#number_objects small {
+    background-color: rgba(39, 42, 42, 0.4);
+}
+
+/* Reduced size for legends and their text */
+fieldset legend {
+    font-size: 90%; /* Adjust the size as needed */
+}
+
+/* Reduced margin for the Calculate button */
+#calculate_button {
+    margin-top: 5px; /* Adjust this value as needed */
+}
+
+/* Or, if you want to adjust the form's bottom margin */
+.form-group {
+    margin-bottom: 5px; /* Adjust this value as needed */
+}
+
+/* Media Query for Mobile Devices */
+@media (max-width: 768px) {
+
+    .flex-container {
+        display: block;
+    }
+
+    .logo-container img {
+        width: auto;
+        max-width: 100%;
+        height: auto;
+    }
+
+    #number_objects small {
+        font-size: 70%; /* Adjust this percentage based on your needs */
+        white-space: nowrap;
+    }
+
+    /* Reduced size for legends and their text */
+    fieldset legend {
+        font-size: 80%; /* Adjust the size as needed */
+    }
+}
+
+.center {
+    text-align: center;
 }

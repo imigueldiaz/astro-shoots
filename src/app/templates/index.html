@@ -20,13 +20,13 @@
             <legend>Object to search</legend>
             <div class="row">
                 <div class="col">
-                    <center>
+                    <div class="center" id="number_objects">
                         <small>
                             Current local copy of OpenNGC database contains
                             <strong>{{ db_num_objects }}</strong>
                             objects.
                         </small>
-                    </center>
+                    </div>
                     <br/>
                     <label for="object_name">Object Name:</label>
                     <div class="position-relative">
@@ -140,7 +140,7 @@
                 <div class="col">
                     <label for="min_degrees">Elevation threshold:</label>
                     <input
-                            class="form-control integer-input"
+                            class="form-control dms-input"
                             id="min_degrees"
                             name="min_degrees"
                             placeholder="Minimum Degrees"
@@ -340,7 +340,8 @@
             </div>
         </fieldset>
         <button
-                class="btn btn-primary mt-3 btn-calculate"
+                class="btn btn-primary btn-calculate"
+                id="calculate_button"
                 type="submit"
         >
             Calculate
