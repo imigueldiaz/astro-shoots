@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
         debounce(function () {
             const query = objectNameInput.value.trim();
 
-            fetch(`${appRoute}/search_objects?query=${query}`)
+            fetch(`${appRoute}search_objects?query=${query}`)
                 .then((response) => response.json())
                 .then((suggestions) => {
                     suggestionList.innerHTML = '';
