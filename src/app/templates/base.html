@@ -6,6 +6,12 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0"
     />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+
     <title>{% block title %}Default Title{% endblock %}</title>
     <link
             rel="stylesheet"
@@ -34,15 +40,13 @@
 
             <picture>
 
-                <source type="image/webp" src="{{ url_for('static', filename='images/logo.webp') }}"/>
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+                <source type="image/webp" src="{{ url_for('static', filename='images/banner.webp') }}"/>
+                <img src="{{ url_for('static', filename='images/banner.png') }}" alt="Logo">
             </picture>
 
 
         </div>
-        <div class="text-container">
-            <h1>Number of untracked shoots calculator</h1>
-        </div>
+
     </div>
     {% block content %}
         <!-- Content goes here -->
