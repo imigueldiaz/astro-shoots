@@ -10,12 +10,20 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - name: Setup Node.js 19
+              uses: actions/setup-node@v2
+              with:
+                node-version: '19'
+            
             - name: Checkout code
               uses: actions/checkout@v2
 
             - name: Deploy to Server
               run: |
-                  rsync -r --delete-after --quiet --chown=www-data:www-data ${{ github.workspace }}/ idemiguel@165.227.228.82:/var/www/astroshoots.org/html/
+                  echo "${{ secrets.DEPLOY_KEY }}" > deploy_key
+                  chmod 600 deploy_key
+                  rsync -r --delete-after --quiet --chown=www-data:www-data -e "ssh -i deploy_key" ${{ github.workspace }}/ ${{ secrets.SERVER }}
+
 
               env:
                   DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
