@@ -27,7 +27,14 @@ jobs:
     - name: Deploy to Server
       run: |
         rsync -r --delete-after --quiet --chown=www-data:www-data -e "ssh -i deploy_key" ${{ github.workspace }}/ ${{ secrets.SERVER }}
+    - name: Set up Python Environment and Restart Service
+      run: |
+        ssh -i deploy_key ${{ secrets.SERVER_IP }} 'bash -s' < ./bin/deploy.sh
+
+        
       env:
         DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         SERVER: ${{ secrets.SERVER }}
+        SERVER_IP: ${{secrets.SERVER_IP}}
+    
 
