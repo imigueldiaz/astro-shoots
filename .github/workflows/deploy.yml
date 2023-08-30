@@ -19,6 +19,7 @@ jobs:
 
     - name: Add SSH key and known hosts
       run: |
+        mkdir -p ~/.ssh
         echo "${{ secrets.DEPLOY_KEY }}" > deploy_key
         chmod 600 deploy_key
         ssh-keyscan -H 165.227.228.82 >> ~/.ssh/known_hosts
