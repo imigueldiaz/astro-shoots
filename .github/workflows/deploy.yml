@@ -6,30 +6,27 @@ on:
             - main
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Node.js 19
+      uses: actions/setup-node@v2
+      with:
+        node-version: '19'
 
-        steps:
-            - name: Setup Node.js 19
-              uses: actions/setup-node@v2
-              with:
-                node-version: '19'
-            
-            - name: Checkout code
-              uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-            - name: Deploy to Server
-              run: |
-                  echo "${{ secrets.DEPLOY_KEY }}" > deploy_key
-                  chmod 600 deploy_key
-                  rsync -r --delete-after --quiet --chown=www-data:www-data -e "ssh -i deploy_key" ${{ github.workspace }}/ ${{ secrets.SERVER }}
+    - name: Add SSH key and known hosts
+      run: |
+        echo "${{ secrets.DEPLOY_KEY }}" > deploy_key
+        chmod 600 deploy_key
+        ssh-keyscan -H 165.227.228.82 >> ~/.ssh/known_hosts
 
+    - name: Deploy to Server
+      run: |
+        rsync -r --delete-after --quiet --chown=www-data:www-data -e "ssh -i deploy_key" ${{ github.workspace }}/ ${{ secrets.SERVER }}
+      env:
+        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        SERVER: ${{ secrets.SERVER }}
 
-              env:
-                  DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-
-            - name: Set up Python Environment and Restart Service
-              run: |
-                  ssh your_server_user@your_server_ip "bash -s" < deploy.sh
-              env:
-                  DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
