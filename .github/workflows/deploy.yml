@@ -1,9 +1,9 @@
 name: Deploy to Production Server
 
 on:
-    push:
-        branches:
-            - main
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -24,15 +24,19 @@ jobs:
         chmod 600 deploy_key
         ssh-keyscan -H ${{ secrets.SERVER_HOSTNAME }} >> ~/.ssh/known_hosts
 
+    - name: Debug known hosts  # For debugging purposes only
+      run: cat ~/.ssh/known_hosts
+
     - name: Deploy to Server
       run: |
-        rsync -r --delete-after --quiet --chown=www-data:www-data --exclude '.git/' --exclude '.gitignore' --exclude 'deploy_key' --exclude '.github' --exclude '.idea' --exclude '.vscode' -e "ssh -i deploy_key" ${{ github.workspace }}/ ${{ secrets.SERVER }}
+        rsync -r --delete-after --quiet --chown=www-data:www-data --exclude '.git/' --exclude '.gitignore' --exclude 'deploy_key' --exclude '.github' --exclude '.idea' --exclude '.vscode' -e "ssh -i deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts" ${{ github.workspace }}/ ${{ secrets.SERVER }}
 
     - name: Set up Python Environment and Restart Service
       run: |
-        ssh -i deploy_key ${{ secrets.SERVER_IP }} '$HOME/bin/deploy.sh'
+        ssh -vvv -i deploy_key ${{ secrets.SERVER_IP }} '$HOME/bin/deploy.sh'
+        
       env:
         DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         SERVER: ${{ secrets.SERVER }}
-        SERVER_IP: ${{secrets.SERVER_IP }}
+        SERVER_IP: ${{ secrets.SERVER_IP }}
         SERVER_HOSTNAME: ${{ secrets.SERVER_HOSTNAME }}
