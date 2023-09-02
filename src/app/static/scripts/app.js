@@ -252,8 +252,9 @@ function fillFormFieldsFromLocalStorage() {
  * @param {string} selector - The CSS selector for the Select2 element.
  * @param {string} route - The URL to fetch the data from.
  * @param {number} minInputLength - The minimum length of input required to trigger the AJAX request.
+ * @param grouping
  */
-function initializeSelect2(selector, route, minInputLength) {
+function initializeSelect2(selector, route, minInputLength, grouping = null) {
     const selectElement = $(selector);
 
     selectElement.select2({
@@ -262,25 +263,51 @@ function initializeSelect2(selector, route, minInputLength) {
             url: route,
             dataType: 'json',
             processResults: function (data) {
-                return {
-                    results: data.map(function (obj) {
-                        let extraData = Object.entries(obj).reduce(function (acc, [key, value]) {
-                            if (key !== 'value' && key !== 'text') {
-                                acc['data-' + key] = value;
-                            }
-                            return acc;
-                        }, {});
-                        return {
+                if (grouping) {
+                    const groupedData = {};
+                    data.forEach(obj => {
+                        if (!groupedData[obj[grouping]]) {
+                            groupedData[obj[grouping]] = [];
+                        }
+                        groupedData[obj[grouping]].push({
                             id: obj.value,
-                            text: obj.text,
-                            ...extraData
+                            text: obj.text
+                        });
+                    });
+
+                    const finalGroupedData = Object.keys(groupedData).map(key => {
+                        return {
+                            text: key,
+                            children: groupedData[key]
                         };
-                    })
-                };
+                    });
+
+                    return {results: finalGroupedData};
+                } else {
+                    return {
+                        results: data.map(function (obj) {
+                            let extraData = Object.entries(obj).reduce(function (acc, [key, value]) {
+                                if (key !== 'value' && key !== 'text') {
+                                    acc['data-' + key] = value;
+                                }
+                                return acc;
+                            }, {});
+                            return {
+                                id: obj.value,
+                                text: obj.text,
+                                ...extraData
+                            };
+                        })
+                    };
+                }
             }
         },
         templateResult: function (data) {
-            return $('<span>').html(data.text);
+            if (data.children) {
+                return $('<strong>').text(data.text);
+            } else {
+                return $('<span>').html(data.text);
+            }
         },
         templateSelection: function (data) {
             return $('<span>').html(data.text);
@@ -293,7 +320,6 @@ function initializeSelect2(selector, route, minInputLength) {
         // Update related input fields based on the selected value
         for (let key in selectedData) {
             if (key.startsWith('data-')) {
-                // Remove the 'data-' prefix to find the related input by its ID
                 const relatedInputId = key.substring(5);
                 const relatedElement = $('#' + relatedInputId);
                 if (relatedElement.length && relatedElement.is('input')) {
@@ -350,8 +376,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Fill select2 dropdowns
-    initializeSelect2('#object_name', `${appRoute}search_objects`, 3);
-    initializeSelect2('#camera', `${appRoute}cameras`, 3);
+    initializeSelect2('#object_name', `${appRoute}search_objects`, 3, "type");
+    initializeSelect2('#camera', `${appRoute}cameras`, 3, "brand");
 
     // Initialize select2 dropdowns
     initSelect2WithSelectedValue("#aperture");

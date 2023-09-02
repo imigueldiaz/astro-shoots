@@ -1,4 +1,5 @@
 import json
+from operator import itemgetter
 from typing import Any
 
 from flask import Blueprint, request, jsonify
@@ -44,9 +45,13 @@ def create_search_objects_blueprint(
                 {
                     "text": f"<strong>{obj['name']}</strong> - <em>{common_name}</em> <small>({object_type})</small>",
                     "value": obj["name"],
+                    "type": object_type,
                 }
             )
 
-        return jsonify(suggestions)
+        # Sort filtered_cameras by type and name
+        sorted_filtered_objects = sorted(suggestions, key=itemgetter("type", "value"))
+
+        return jsonify(sorted_filtered_objects)
 
     return search_objects_bp
