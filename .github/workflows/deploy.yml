@@ -1,9 +1,9 @@
 name: Deploy to Production Server
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 jobs:
   deploy:
@@ -22,21 +22,17 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.DEPLOY_KEY }}" > deploy_key
         chmod 600 deploy_key
-        ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ secrets.SERVER_HOSTNAME }} >> ~/.ssh/known_hosts
 
     - name: Deploy to Server
       run: |
         rsync -r --delete-after --quiet --chown=www-data:www-data --exclude '.git/' --exclude '.gitignore' --exclude 'deploy_key' --exclude '.github' --exclude '.idea' --exclude '.vscode' -e "ssh -i deploy_key" ${{ github.workspace }}/ ${{ secrets.SERVER }}
 
-    - name: Set Group Write Permissions
-      run: |
-        ssh -i deploy_key ${{ secrets.SERVER_IP }} 'chmod -R g+w /var/www/astroshoots.org/html/'
-
     - name: Set up Python Environment and Restart Service
       run: |
         ssh -i deploy_key ${{ secrets.SERVER_IP }} '$HOME/bin/deploy.sh'
-        
       env:
         DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         SERVER: ${{ secrets.SERVER }}
-        SERVER_IP: ${{ secrets.SERVER_IP }}
+        SERVER_IP: ${{secrets.SERVER_IP }}
+        SERVER_HOSTNAME: ${{ secrets.SERVER_HOSTNAME }}
