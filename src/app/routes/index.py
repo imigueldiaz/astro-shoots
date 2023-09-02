@@ -4,19 +4,21 @@ from flask import Blueprint, render_template, request
 
 from app.forms.forms import ObjectForm
 from app.utils.calculation_service import perform_astro_calculations
+from app.utils.logger import log_exceptions
 
 
 def create_index_blueprint(
+    app,
     route: str,
     calculate_camera_fov: Callable,
     get_object_data: Callable,
-    get_alt_az: Callable,
     calculate_max_shooting_time: Callable,
     calculate_number_of_shoots: Callable,
     count_dso: Callable,
 ) -> Blueprint:
     index_bp: Blueprint = Blueprint("index", __name__)
 
+    @log_exceptions(app)
     @index_bp.route(route, methods=["GET", "POST"])
     def index():
         form = ObjectForm()
@@ -25,6 +27,8 @@ def create_index_blueprint(
                 field_name: getattr(form, field_name).data
                 for field_name in form._fields
             }
+
+            print(form_data)
 
             result = perform_astro_calculations(
                 form_data,

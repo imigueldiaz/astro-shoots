@@ -4,16 +4,19 @@ from typing import Any
 from flask import Blueprint, request, jsonify
 
 from app.search.dsosearcher import DsoSearcher
+from app.utils.logger import log_exceptions
 
 
 def create_search_objects_blueprint(
+    app,
     route,
 ):
     search_objects_bp = Blueprint("search_objects", __name__)
 
+    @log_exceptions(app)
     @search_objects_bp.route(f"{route}/search_objects", methods=["GET", "POST"])
     def search_objects():
-        query = request.args.get("query")
+        query = request.args.get("q")
         if not query:
             return jsonify([])
 
@@ -39,8 +42,8 @@ def create_search_objects_blueprint(
 
             suggestions.append(
                 {
-                    "name": f"{obj['name']} - {common_name} ({object_type})",
-                    "id": obj["name"],
+                    "text": f"<strong>{obj['name']}</strong> - <em>{common_name}</em> <small>({object_type})</small>",
+                    "value": obj["name"],
                 }
             )
 

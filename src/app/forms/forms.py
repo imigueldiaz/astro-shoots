@@ -54,4 +54,6 @@ class ObjectForm(FlaskForm):
     )
     altitude = IntegerField("Altitude", validators=[Optional(), NumberRange(0, 9999)])
     object_id = HiddenField()
+    camera = StringField("Select Camera", validators=[Optional()])
+
     submit = SubmitField("Submit")

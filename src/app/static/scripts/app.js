@@ -1,3 +1,7 @@
+// ---------------------------
+// Functions
+// ---------------------------
+
 /**
  * Converts a decimal value to degrees, minutes, and seconds.
  *
@@ -72,15 +76,6 @@ function updateHiddenCoordinates() {
     }
 }
 
-document.getElementById('calculate_form').addEventListener('input', function (event) {
-    const target = event.target;
-    if (
-        target.matches('#latitude_deg, #latitude_min, #latitude_sec, #longitude_deg, #longitude_min, #longitude_sec')
-    ) {
-        updateHiddenCoordinates();
-    }
-});
-
 /**
  * Retrieves the user's current location using the browser's geolocation API.
  *
@@ -142,81 +137,6 @@ function generateApertureOptions() {
 
 }
 
-generateApertureOptions();
-
-const cameraPositionSelect = document.querySelector('#camera_position');
-const selectedCameraPosition = cameraPositionSelect.dataset.selectedValue || '0';
-cameraPositionSelect.value = selectedCameraPosition;
-
-const apertureSelect = document.querySelector('#aperture');
-const selectedAperture = apertureSelect.dataset.selectedValue || '1';
-apertureSelect.value = selectedAperture;
-
-document.addEventListener('DOMContentLoaded', function () {
-    const objectNameInput = document.getElementById('object_name');
-    const suggestionList = document.createElement('div');
-    suggestionList.id = 'suggestion-list';
-    suggestionList.className = 'suggestion-list';
-    objectNameInput.parentNode.appendChild(suggestionList);
-
-    /**
-     * Creates a debounced function that delays invoking the provided function until after `delay` milliseconds have elapsed since the last time it was invoked.
-     *
-     * @param {Function} func - The function to debounce.
-     * @param {number} delay - The number of milliseconds to delay.
-     * @return {Function} - The debounced function.
-     */
-    function debounce(func, delay) {
-        let timeoutId;
-        return function (...args) {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => func.apply(this, args), delay);
-        };
-    }
-
-    const handleInput = debounce(function () {
-        const query = objectNameInput.value.trim();
-        fetch(`${appRoute}search_objects?query=${query}`)
-            .then((response) => response.json())
-            .then((suggestions) => {
-                suggestionList.innerHTML = '';
-                suggestions.forEach((suggestion, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'suggestion-item';
-                    item.textContent = suggestion.name;
-                    item.tabIndex = 0; // Enable tab navigation
-
-                    item.addEventListener('click', function () {
-                        objectNameInput.value = suggestion.name;
-                        const objectIdInput = document.getElementById('object_id');
-                        objectIdInput.value = suggestion.id;
-                        suggestionList.innerHTML = '';
-                    });
-
-                    item.addEventListener('keydown', function (e) {
-                        if (e.key === 'ArrowDown' && index < suggestions.length - 1) {
-                            suggestionList.children[index + 1].focus();
-                        } else if (e.key === 'ArrowUp' && index > 0) {
-                            suggestionList.children[index - 1].focus();
-                        }
-                    });
-
-                    item.addEventListener('mouseover', function () {
-                        objectNameInput.value = suggestion.name;
-                        const objectIdInput = document.getElementById('object_id');
-                        objectIdInput.value = suggestion.id;
-                    });
-
-                    suggestionList.appendChild(item);
-                });
-            });
-    }, 300);
-
-    objectNameInput.addEventListener('input', handleInput);
-});
-
-window.onload = getLocation;
-
 /**
  * Saves the form data to local storage.
  *
@@ -232,13 +152,58 @@ function saveFormDataToLocalStorage(formData) {
         }
     }
 
-    // No guardar un valor vacío para altitude
+    nonCsrfFormValues['aperture'] = $('#aperture').val();
+    nonCsrfFormValues['camera_position'] = $('#camera_position').val();
+    nonCsrfFormValues['camera'] = $('#camera').val();
+    nonCsrfFormValues['object_name'] = $('#object_name').val();
+
+    // Comprobaciones adicionales
     if (nonCsrfFormValues.altitude === '') {
         delete nonCsrfFormValues.altitude;
     }
 
     localStorage.setItem('formData', JSON.stringify(nonCsrfFormValues));
 }
+
+
+/**
+ * Fills a select2 element with data retrieved from a server based on a saved value.
+ *
+ * @param {string} selector - The CSS selector for the select2 element.
+ * @param {string} savedValue - The value to be used to retrieve data from the server.
+ * @param {string} url - The URL to send the AJAX request to.
+ * @return {void} This function does not return anything.
+ */
+function fillSelect2WithSavedData(selector, savedValue, url) {
+    $.ajax({
+        url: `${url}?q=${savedValue}`,
+        dataType: 'json',
+        success: function (data) {
+            data.forEach(item => {
+                const option = new Option(item.text, item.value, true, true);
+
+                for (let key in item) {
+                    if (key !== 'value' && key !== 'text') {
+                        const dataAttr = 'data-' + key;
+                        $(option).attr(dataAttr, item[key]);
+
+                        // Remove the 'data-' prefix to find the related input by its ID
+                        const relatedElement = $(`#${key}`);
+                        if (relatedElement.length && relatedElement.is('input')) {
+                            relatedElement.val(item[key]);
+                        }
+                    }
+                }
+
+                $(selector).append(option);
+            });
+
+            $(selector).val(savedValue).trigger('change');
+            $(selector).attr('data-selected-value', savedValue);
+        }
+    });
+}
+
 
 /**
  * Fill form fields from local storage.
@@ -247,7 +212,7 @@ function saveFormDataToLocalStorage(formData) {
  */
 function fillFormFieldsFromLocalStorage() {
     const savedFormData = JSON.parse(localStorage.getItem('formData'));
-    
+
     if (savedFormData) {
         for (const key in savedFormData) {
             if (key !== 'csrf_token') {
@@ -258,20 +223,140 @@ function fillFormFieldsFromLocalStorage() {
             }
         }
 
-        // Manejar campos aperture y camera_position
-        const apertureSelect = document.querySelector('#aperture');
-        const cameraPositionSelect = document.querySelector('#camera_position');
+        //noinspection JSUnresolvedVariable
+        if (savedFormData.aperture) {
+            $('#aperture').val(savedFormData.aperture).trigger('change');
+        } else {
+            $('#aperture').val('1').trigger('change');
+        }
 
-        apertureSelect.value = savedFormData.aperture ? savedFormData.aperture : '1';
-        cameraPositionSelect.value = savedFormData.camera_position ? savedFormData.camera_position : '0';
+        //noinspection JSUnresolvedVariable
+        if (savedFormData.camera_position) {
+            $('#camera_position').val(savedFormData.camera_position).trigger('change');
+        } else {
+            $('#camera_position').val('0').trigger('change');
+        }
+        if (savedFormData.camera) {
+            fillSelect2WithSavedData('#camera', savedFormData.camera, `${appRoute}cameras`);
+        }
+
+        if (savedFormData.object_name) {
+            fillSelect2WithSavedData('#object_name', savedFormData.object_name, `${appRoute}search_objects`);
+        }
     }
 }
 
-// Update LocalStorage on form submit
-document.forms[0].addEventListener('submit', (event) => {
-    const formData = new FormData(event.target);
-    saveFormDataToLocalStorage(formData);
-});
+/**
+ * Initializes Select2 with the given selector, route, and minimum input length.
+ *
+ * @param {string} selector - The CSS selector for the Select2 element.
+ * @param {string} route - The URL to fetch the data from.
+ * @param {number} minInputLength - The minimum length of input required to trigger the AJAX request.
+ */
+function initializeSelect2(selector, route, minInputLength) {
+    const selectElement = $(selector);
 
-// Fill form fields from local storage
-window.addEventListener('load', fillFormFieldsFromLocalStorage);
+    selectElement.select2({
+        minimumInputLength: minInputLength,
+        ajax: {
+            url: route,
+            dataType: 'json',
+            processResults: function (data) {
+                return {
+                    results: data.map(function (obj) {
+                        let extraData = Object.entries(obj).reduce(function (acc, [key, value]) {
+                            if (key !== 'value' && key !== 'text') {
+                                acc['data-' + key] = value;
+                            }
+                            return acc;
+                        }, {});
+                        return {
+                            id: obj.value,
+                            text: obj.text,
+                            ...extraData
+                        };
+                    })
+                };
+            }
+        },
+        templateResult: function (data) {
+            return $('<span>').html(data.text);
+        },
+        templateSelection: function (data) {
+            return $('<span>').html(data.text);
+        }
+    }).on('select2:select', function (e) {
+        const selectedData = e.params.data;
+        const selectedValue = selectedData.id;
+        selectElement.attr('data-selected-value', selectedValue);
+
+        // Update related input fields based on the selected value
+        for (let key in selectedData) {
+            if (key.startsWith('data-')) {
+                // Remove the 'data-' prefix to find the related input by its ID
+                const relatedInputId = key.substring(5);
+                const relatedElement = $('#' + relatedInputId);
+                if (relatedElement.length && relatedElement.is('input')) {
+                    relatedElement.val(selectedData[key]);
+                }
+            }
+        }
+    });
+}
+
+
+/**
+ * Initializes a select2 dropdown with a pre-selected value.
+ *
+ * @param {string} selector - The CSS selector of the select element.
+ * @return {void} This function does not return a value.
+ */
+function initSelect2WithSelectedValue(selector) {
+    const selectElement = $(selector);
+
+    selectElement.select2().on('select2:select', function (e) {
+        const selectedValue = e.params.data.id;
+        selectElement.attr('data-selected-value', selectedValue);
+    });
+}
+
+
+// ---------------------------
+// Initialization and Events
+// ---------------------------
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.getElementById('calculate_form').addEventListener('input', function (event) {
+        const target = event.target;
+        if (
+            target.matches('#latitude_deg, #latitude_min, #latitude_sec, #longitude_deg, #longitude_min, #longitude_sec')
+        ) {
+            updateHiddenCoordinates();
+        }
+    });
+
+    // Generate aperture options
+    generateApertureOptions();
+
+
+    // Get location
+    getLocation();
+
+    // Save form data to local storage on submit
+    document.forms[0].addEventListener('submit', (event) => {
+        const formData = new FormData(event.target);
+        saveFormDataToLocalStorage(formData);
+    });
+
+    // Fill select2 dropdowns
+    initializeSelect2('#object_name', `${appRoute}search_objects`, 3);
+    initializeSelect2('#camera', `${appRoute}cameras`, 3);
+
+    // Initialize select2 dropdowns
+    initSelect2WithSelectedValue("#aperture");
+    initSelect2WithSelectedValue("#camera_position");
+
+    // Fill form fields from local storage
+    fillFormFieldsFromLocalStorage();
+});

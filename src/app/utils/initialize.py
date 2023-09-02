@@ -47,9 +47,18 @@ def init_talisman(app):
     csp = {
         "default-src": "'self'",
         "img-src": ["*", "data:"],
-        "script-src": "'self' 'unsafe-inline'",
-        "style-src": "'self' 'unsafe-inline'",
-        "font-src": "'self'",
+        "script-src": [
+            "'self'",
+            "'unsafe-inline'",
+            "https://cdn.jsdelivr.net",  # For Bootstrap, Fork-Awesome and Select2
+            "https://code.jquery.com",  # For jQuery
+        ],
+        "style-src": [
+            "'self'",
+            "'unsafe-inline'",
+            "https://cdn.jsdelivr.net",  # For Bootstrap, Fork-Awesome and Select2
+        ],
+        "font-src": ["'self'", "https://cdn.jsdelivr.net"],  # Para Fork-Awesome
     }
     return Talisman(app, content_security_policy=csp)
 
