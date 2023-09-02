@@ -21,29 +21,20 @@
             <legend>Object to search</legend>
             <div class="row">
                 <div class="col">
-                    <div class="center" id="number_objects">
-                        <small>
-                            Current local copy of OpenNGC database contains
-                            <strong>{{ db_num_objects }}</strong>
-                            objects.
-                        </small>
+                    <div class="form-group position-relative">
+                        <div class="center" id="number_objects">
+                            <small>
+                                Current local copy of OpenNGC database contains
+                                <strong>{{ db_num_objects }}</strong>
+                                objects.
+                            </small>
+                        </div>
+                        <br/>
+                        <label for="object_name" class="form-label">Object Name:</label>
+                        <select class="form-control" id="object_name" name="object_name" data-selected-value="">
+                        </select>
                     </div>
-                    <br/>
-                    <label for="object_name">Object Name:</label>
-                    <div class="position-relative">
-                        <input
-                                autocomplete="off"
-                                class="form-control"
-                                id="object_name"
-                                name="object_name"
-                                required=""
-                                type="text"
-                        />
-                        <i
-                                aria-hidden="true"
-                                class="fa fa-search input-icon"
-                        ></i>
-                    </div>
+
                 </div>
             </div>
         </fieldset>
@@ -164,7 +155,19 @@
             </div>
         </fieldset>
         <fieldset>
-            <legend>Sensor specs</legend>
+            <legend>Camera specs</legend>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group position-relative">
+                        <label for="camera_select" class="form-label">Camera:</label>
+                        <select class="form-control" id="camera" name="camera" data-selected-value="">
+                            <!-- Options will be populated here -->
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col">
                     <label for="sensor_height_mm">Sensor Height (mm):</label>
@@ -275,11 +278,7 @@
                                 name="aperture"
                                 required=""
                         ></select>
-                        <i class="fa fa-caret-down select-arrow-icon"></i>
-                        <i
-                                aria-hidden="true"
-                                class="fa fa-camera input-icon"
-                        ></i>
+
                     </div>
                 </div>
             </div>
@@ -303,7 +302,7 @@
                     </div>
                 </div>
                 <div class="col">
-                    <label for="camera_position">Camera position:</label>
+                    <label for="camera_position_select">Camera position:</label>
                     <div class="position-relative select-wrapper">
                         <select
                                 class="form-control custom-select-camera-position select-camera-position"
@@ -331,11 +330,7 @@
                             <option value="-75">75° left</option>
                             <option value="-90">Reverse Vertical</option>
                         </select>
-                        <i class="fa fa-caret-down select-arrow-icon"></i>
-                        <i
-                                aria-hidden="true"
-                                class="fa fa-repeat input-icon"
-                        ></i>
+
                     </div>
                 </div>
             </div>

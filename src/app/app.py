@@ -1,12 +1,15 @@
+import os
+
 from flask import Flask
 
 from app.routes.route_initializer import initialize_routes
-from app.utils.astro_utils import get_alt_az, get_object_data, count_dso
+from app.utils.astro_utils import get_object_data, count_dso
 from app.utils.calculations import (
     calculate_camera_fov,
     calculate_max_shooting_time,
     calculate_number_of_shoots,
 )
+from app.utils.camera_utils import load_cameras_from_json
 from app.utils.initialize import init_csrf, init_limiter, init_logging, init_talisman
 from app.utils.settings import load_config
 
@@ -63,15 +66,22 @@ def create_app():
 
 
 app = create_app()
+
+
+current_directory = os.path.dirname(os.path.abspath(__file__))
+json_path = os.path.join(current_directory, "db", "cameras-all.json")
+
+cameras = load_cameras_from_json(json_path)
+
 initialize_routes(
     app,
     ROUTE,
     calculate_camera_fov,
     calculate_max_shooting_time,
     calculate_number_of_shoots,
-    get_alt_az,
     get_object_data,
     count_dso,
+    cameras,
 )
 
 

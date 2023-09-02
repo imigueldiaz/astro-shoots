@@ -155,90 +155,6 @@ input[type='number']::-webkit-outer-spin-button {
     color: #fff;
 }
 
-.select-aperture,
-.select-camera-position {
-    margin-left: 30px;
-}
-
-.custom-select-aperture,
-.custom-select-camera-position {
-    background-color: #333;
-    border-color: #444;
-    color: #eee;
-    font-size: 1rem;
-    padding: 4px 12px;
-    line-height: 1.3;
-    position: relative;
-    appearance: none;
-    width: calc(100% - 40px);
-}
-
-.custom-select-aperture:focus,
-.custom-select-camera-position:focus {
-    border-color: #555;
-    box-shadow: none;
-}
-
-.select-wrapper .select-arrow-icon {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    fill: #eee;
-    pointer-events: none;
-}
-
-/* Estilos para los elementos option */
-.custom-select-aperture option,
-.custom-select-camera-position option {
-    background-color: #333;
-    color: #eee;
-}
-
-/* Estilos para el elemento option seleccionado */
-.custom-select-aperture option:checked,
-.custom-select-camera-position option:checked {
-    background-color: #007bff;
-    color: #fff;
-}
-
-/* Estilos para el elemento option en estado hover */
-.custom-select-aperture option:hover,
-.custom-select-camera-position option:hover {
-    background-color: #555;
-    color: #fff;
-}
-
-/* Estilos para el elemento option en estado focus */
-.custom-select-aperture option:focus,
-.custom-select-camera-position option:focus {
-    background-color: #555;
-    color: #fff;
-    outline: none;
-}
-
-.suggestion-list {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    max-height: 200px;
-    overflow-y: auto;
-    background-color: #333;
-    border: 1px solid #444;
-    border-top: none;
-    z-index: 1000;
-}
-
-.suggestion-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    color: #eee;
-}
-
-.suggestion-item:hover {
-    background-color: #555;
-}
 
 h2 {
     text-align: center; /* Align text to the center */
@@ -258,15 +174,6 @@ h2 {
     padding: 10px; /* Padding around the text */
 }
 
-#suggestion-list:focus {
-    outline: none;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Example: subtle shadow */
-}
-
-.suggestion-item:focus {
-    outline: none;
-    background-color: #f0f0f0; /* Light gray background */
-}
 
 #observation_data {
     font-family: 'Courier New', Courier, monospace;
@@ -365,6 +272,7 @@ fieldset legend {
     margin-bottom: 5px; /* Adjust this value as needed */
 }
 
+
 /* Media Query for Mobile Devices */
 @media (max-width: 768px) {
 
@@ -391,4 +299,53 @@ fieldset legend {
 
 .center {
     text-align: center;
+}
+
+/* Estilo para el contenedor de Select2 */
+.select2-container {
+    background-color: #333 !important;
+    border-color: #444 !important;
+    color: #eee !important;
+}
+
+/* Estilo para las opciones de Select2 */
+.select2-results__option {
+    background-color: #333 !important;
+    color: #eee !important;
+}
+
+/* Estilo para las opciones seleccionadas de Select2 */
+.select2-results__option--highlighted {
+    background-color: #555 !important;
+    color: #fff !important;
+}
+
+/* Estilo para el cuadro de búsqueda de Select2 */
+.select2-search__field {
+    background-color: #333 !important;
+    border-color: #444 !important;
+    color: #eee !important;
+}
+
+/* Estilo para el cuadro de selección de Select2 */
+.select2-selection {
+    background-color: #333 !important;
+    border-color: #444 !important;
+    color: #eee !important;
+}
+
+/* Estilo para el cuadro de selección de Select2 cuando está enfocado */
+.select2-selection--single:focus {
+    border-color: #555 !important;
+    box-shadow: none !important;
+}
+
+/* Estilo para el texto del cuadro de selección de Select2 cuando está cerrado */
+.select2-selection__rendered {
+    color: #ccc !important; /* Puedes ajustar este color según lo necesites */
+}
+
+small {
+    font-size: 0.8rem;
+    color: #aaa !important;
 }
