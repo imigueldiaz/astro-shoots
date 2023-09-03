@@ -6,7 +6,8 @@ Astro-Shoots is a Flask-based project designed to calculate the optimal number o
 deep space objects (DSOs). The application utilizes data from the [OpenNGC](https://github.com/mattiaverga/OpenNGC)
 project through the [PyONGC](https://github.com/mattiaverga/pyongc) Python package and leverages
 the [Astropy](https://www.astropy.org/) library for astronomical calculations, allowing users to select a DSO from a
-comprehensive list.
+comprehensive list. Special thanks to [@mattiaverga](https://github.com/mattiaverga) for creating the OpenNGC and PyONGC
+projects, which have been invaluable resources for the development of Astro-Shoots.
 
 > **Disclaimer**: _This project is an amateur effort created for learning purposes and recreational use only. It is not
 intended for rigorous or scientific work. The author assumes no responsibility for the usage or interpretation of the
