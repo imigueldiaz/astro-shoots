@@ -19,7 +19,6 @@ ROUTE = config["route"]
 SECRET_KEY = config["SECRET_KEY"]
 STATIC_URL_PATH = config["STATIC_URL_PATH"]
 DEBUG = config["DEBUG"]
-pass
 
 
 def format_float(value, format_spec=".2f"):
@@ -51,9 +50,6 @@ def create_app():
     )
     app.config["SECRET_KEY"] = SECRET_KEY
     app.config["DEBUG"] = DEBUG
-
-    app.dsoDict = {}
-    app.jsonObjectList = []
 
     init_logging(app)
     init_limiter(app)

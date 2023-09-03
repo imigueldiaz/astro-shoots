@@ -256,7 +256,6 @@ function fillFormFieldsFromLocalStorage() {
  */
 function initializeSelect2(selector, route, minInputLength, grouping = null) {
     const selectElement = $(selector);
-
     selectElement.select2({
         minimumInputLength: minInputLength,
         ajax: {
@@ -269,36 +268,17 @@ function initializeSelect2(selector, route, minInputLength, grouping = null) {
                         if (!groupedData[obj[grouping]]) {
                             groupedData[obj[grouping]] = [];
                         }
-                        groupedData[obj[grouping]].push({
-                            id: obj.value,
-                            text: obj.text
-                        });
+                        groupedData[obj[grouping]].push({id: obj.value, text: obj.text, data: obj});
                     });
-
                     const finalGroupedData = Object.keys(groupedData).map(key => {
                         return {
                             text: key,
                             children: groupedData[key]
                         };
                     });
-
                     return {results: finalGroupedData};
                 } else {
-                    return {
-                        results: data.map(function (obj) {
-                            let extraData = Object.entries(obj).reduce(function (acc, [key, value]) {
-                                if (key !== 'value' && key !== 'text') {
-                                    acc['data-' + key] = value;
-                                }
-                                return acc;
-                            }, {});
-                            return {
-                                id: obj.value,
-                                text: obj.text,
-                                ...extraData
-                            };
-                        })
-                    };
+                    return {results: data.map(obj => ({id: obj.value, text: obj.text, data: obj}))};
                 }
             }
         },
@@ -313,14 +293,10 @@ function initializeSelect2(selector, route, minInputLength, grouping = null) {
             return $('<span>').html(data.text);
         }
     }).on('select2:select', function (e) {
-        const selectedData = e.params.data;
-        const selectedValue = selectedData.id;
-        selectElement.attr('data-selected-value', selectedValue);
-
-        // Update related input fields based on the selected value
+        const selectedData = e.params.data.data;
         for (let key in selectedData) {
-            if (key.startsWith('data-')) {
-                const relatedInputId = key.substring(5);
+            if (key !== 'value' && key !== 'text') {
+                const relatedInputId = key.replace('data-', '');
                 const relatedElement = $('#' + relatedInputId);
                 if (relatedElement.length && relatedElement.is('input')) {
                     relatedElement.val(selectedData[key]);
