@@ -46,6 +46,7 @@ def create_search_objects_blueprint(
                     "text": f"<strong>{obj['name']}</strong> - <em>{common_name}</em> <small>({object_type})</small>",
                     "value": obj["name"],
                     "type": object_type,
+                    "object_id": obj["name"],
                 }
             )
 

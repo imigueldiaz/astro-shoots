@@ -1,23 +1,25 @@
 # initialize.py
 import logging
+from logging.handlers import RotatingFileHandler
 
+from flask import Flask
 from flask_limiter import Limiter
 from flask_talisman import Talisman
 from flask_wtf.csrf import CSRFProtect
 
 
-def init_logging(app):
+def init_logging(app: Flask):
     """
     Initializes logging for the application.
 
     Args:
-        app (object): The application object.
+        app (Flask): The Flask application object.
 
     Returns:
         None
     """
-    handler = logging.FileHandler("app.log")
-    handler.setLevel(logging.DEBUG)
+    handler = RotatingFileHandler("app.log", maxBytes=10000, backupCount=3)
+    handler.setLevel(logging.ERROR)
     app.logger.addHandler(handler)
 
 
@@ -34,7 +36,7 @@ def init_limiter(app):
     return Limiter(app, default_limits=["10000 per day", "2000 per hour"])
 
 
-def init_talisman(app):
+def init_talisman(app: Flask):
     """
     Initializes the Talisman middleware for the Flask application.
 
@@ -51,7 +53,8 @@ def init_talisman(app):
             "'self'",
             "'unsafe-inline'",
             "https://cdn.jsdelivr.net",  # For Bootstrap, Fork-Awesome and Select2
-            "https://code.jquery.com",  # For jQuery
+            "https://code.jquery.com",
+            "https://cdnjs.cloudflare.com",  # For RxJS
         ],
         "style-src": [
             "'self'",
@@ -63,7 +66,7 @@ def init_talisman(app):
     return Talisman(app, content_security_policy=csp)
 
 
-def init_csrf(app):
+def init_csrf(app: Flask):
     """
     Initializes Cross-Site Request Forgery (CSRF) protection for the given Flask app.
 

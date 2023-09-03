@@ -14,9 +14,6 @@ def load_config():
     """
     Loads the configuration settings from the "config.ini" file and environment variables.
 
-    Parameters:
-        None
-
     Returns:
         None
     """
