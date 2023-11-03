@@ -10,15 +10,9 @@ from app.utils.calculations import (
     calculate_number_of_shoots,
 )
 from app.utils.camera_utils import load_cameras_from_json
-from app.utils.initialize import init_csrf, init_limiter, init_logging, init_talisman
+from app.utils.initialize import init_limiter, init_logging, init_talisman
 from app.utils.settings import load_config
-
-config = load_config()
-
-ROUTE = config["route"]
-SECRET_KEY = config["SECRET_KEY"]
-STATIC_URL_PATH = config["STATIC_URL_PATH"]
-DEBUG = config["DEBUG"]
+from flask_wtf.csrf import CSRFProtect
 
 
 def format_float(value, format_spec=".2f"):
@@ -36,12 +30,13 @@ def format_float(value, format_spec=".2f"):
 
 
 def create_app():
-    """
-    Create and configure the Flask application.
+    config = load_config()
 
-    Returns:
-        app (Flask): The Flask application object.
-    """
+    ROUTE = config["route"]
+    SECRET_KEY = config["SECRET_KEY"]
+    STATIC_URL_PATH = config["STATIC_URL_PATH"]
+    DEBUG = config["DEBUG"]
+
     app = Flask(
         __name__,
         static_url_path=STATIC_URL_PATH,
@@ -51,35 +46,31 @@ def create_app():
     app.config["SECRET_KEY"] = SECRET_KEY
     app.config["DEBUG"] = DEBUG
 
+    CSRFProtect(app)  # Initialize CSRF protection here
+
     init_logging(app)
     init_limiter(app)
     init_talisman(app)
-    init_csrf(app)
 
     app.jinja_env.filters["format_float"] = format_float
 
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    json_path = os.path.join(current_directory, "db", "cameras-all.json")
+
+    cameras = load_cameras_from_json(json_path)
+
+    initialize_routes(
+        app,
+        ROUTE,
+        calculate_camera_fov,
+        calculate_max_shooting_time,
+        calculate_number_of_shoots,
+        get_object_data,
+        count_dso,
+        cameras,
+    )
+
+    if app.debug:
+        app.run()
+
     return app
-
-
-app = create_app()
-
-
-current_directory = os.path.dirname(os.path.abspath(__file__))
-json_path = os.path.join(current_directory, "db", "cameras-all.json")
-
-cameras = load_cameras_from_json(json_path)
-
-initialize_routes(
-    app,
-    ROUTE,
-    calculate_camera_fov,
-    calculate_max_shooting_time,
-    calculate_number_of_shoots,
-    get_object_data,
-    count_dso,
-    cameras,
-)
-
-
-if __name__ == "__main__":
-    app.run(debug=DEBUG)
