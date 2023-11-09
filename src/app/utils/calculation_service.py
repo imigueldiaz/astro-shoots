@@ -129,11 +129,12 @@ def perform_astro_calculations(
         form_data["focal_length"],
     )
 
-    max_shooting_time, real_max_shooting_time = calculate_max_shooting_time(
+    max_shooting_time, real_max_shooting_time, coc = calculate_max_shooting_time(
         form_data["aperture"],
         form_data["sensor_width_mm"],
         form_data["number_of_pixels_in_width"],
         form_data["focal_length"],
+        form_data["sensor_height_mm"],
     )
 
     (
@@ -154,7 +155,6 @@ def perform_astro_calculations(
         form_data["shoot_interval"],
         form_data["camera_position"],
         pa,
-        form_data["min_degrees"],
     )
 
     if num_shoots is None:
@@ -184,6 +184,7 @@ def perform_astro_calculations(
         "min_degrees": min_degrees,
         "altitude": altitude,
         "error": None,
+        "coc": coc,
     }
 
     return result

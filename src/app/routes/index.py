@@ -28,7 +28,7 @@ def create_index_blueprint(
                 for field_name in form._fields
             }
 
-            print(form_data)
+            # print(form_data)
 
             result = perform_astro_calculations(
                 form_data,

@@ -54,8 +54,29 @@ def calculate_camera_fov(
     )
 
 
+def calculate_coc(
+    sensor_width_mm: float,
+    sensor_height_mm: float,
+) -> float:
+    """
+    Calculate Circle of Confusion (CoC) based on diagonal sensor size.
+
+    Args:
+        aperture (float): The aperture of the camera lens.
+        focal_length (float): The focal length of the camera lens.
+        sensor_width_mm (float): The width of the camera sensor in millimeters.
+        sensor_height_mm (float): The height of the camera sensor in millimeters.
+
+    Returns:
+        float: The calculated Circle of Confusion (CoC).
+    """
+    sensor_diagonal_mm = math.sqrt(sensor_width_mm**2 + sensor_height_mm**2)
+    coc = sensor_diagonal_mm / 1500
+    return coc
+
+
 def calculate_max_shooting_time(
-    aperture, sensor_width_mm, number_of_pixels_in_width, focal_length
+    aperture, sensor_width_mm, number_of_pixels_in_width, focal_length, sensor_height_mm
 ):
     """
     Calculate the maximum shooting time based on the given aperture, sensor width, number of pixels in width, and focal length.
@@ -70,10 +91,36 @@ def calculate_max_shooting_time(
         tuple: A tuple containing the rounded shutter speed and the original shutter speed in seconds.
     """
     pixel_pitch = (sensor_width_mm / number_of_pixels_in_width) * 1000  # in microns
+
     shutter_speed = (35 * aperture + 30 * pixel_pitch) / focal_length  # in seconds
+    coc = calculate_coc(sensor_width_mm, sensor_height_mm)
+    shutter_speed = apply_coc_to_shutter_speed(coc, shutter_speed)
 
     rounded_shutter_speed = round_down_shutter_speed(shutter_speed)
-    return rounded_shutter_speed, shutter_speed
+    return rounded_shutter_speed, shutter_speed, coc
+
+
+def apply_coc_to_shutter_speed(coc: float, shutter_speed: float) -> float:
+    """
+    Apply Circle of Confusion (CoC) to a given shutter speed.
+
+    Args:
+        coc (float): The value of the Circle of Confusion.
+        shutter_speed (float): The value of the shutter speed.
+
+    Returns:
+        float: The result of applying the Circle of Confusion to the shutter speed.
+    """
+    # standar value is 0.02 to view at 25cm distance
+    base_coc = 0.02
+
+    # Calculate a factor based on the ratio of the actual CoC to the base CoC
+    coc_factor = coc / base_coc
+
+    # Apply the CoC factor to the shutter speed
+    adjusted_shutter_speed = shutter_speed * coc_factor
+
+    return adjusted_shutter_speed
 
 
 def calculate_number_of_shoots(
@@ -89,7 +136,6 @@ def calculate_number_of_shoots(
     shoot_interval,
     camera_position,
     PA,
-    min_degrees,
 ):
     """
     Calculate the number of shoots required for a given set of parameters.
@@ -109,28 +155,25 @@ def calculate_number_of_shoots(
 
     available_altitude = abs(fov_rot_h - size_major) / 2
     available_azimuth = abs(fov_rot_v - size_minor) / 2
-    current_time = altaz.obstime
+
     num_shoots = 0
+    total_time_minutes = 0
+    total_time_seconds = 0
 
     while True:
         # Ensure the time is in UTC
-        if current_time.scale != "utc":
+        if altaz.obstime.scale != "utc":
             raise ValueError("Time scale should be UTC.")
 
         # Calculate the new position of the object after shoot_interval and exposure_time
-        next_time = current_time + TimeDelta(
+        next_time = altaz.obstime + TimeDelta(
             (shoot_interval + exposure_time) * u.second
         )
 
-        new_altaz, error = get_alt_az(
-            location,
-            ra,
-            dec,
-            next_time,
-        )
+        new_altaz, error = get_alt_az(location, ra, dec, next_time)
 
         if new_altaz is None:
-            return (None, 0, 0, error)
+            return None, total_time_minutes, total_time_seconds, error
 
         avg_altitude_speed = (
             abs(new_altaz.alt.degree - altaz.alt.degree) * 60 / shoot_interval
@@ -147,19 +190,17 @@ def calculate_number_of_shoots(
         )
 
         total_time_per_shot = exposure_time + shoot_interval
-        num_shoots = max(0, total_time_available // total_time_per_shot)
+        num_shoots = total_time_available // total_time_per_shot
 
         if num_shoots > 0:
             break
 
-        current_time = next_time
         altaz = new_altaz
 
-    total_time_seconds = num_shoots * (exposure_time + shoot_interval)
+        total_time_seconds += total_time_per_shot
 
-    # Convert the total time to minutes and seconds
-    total_time_minutes = int(round(total_time_seconds // 60))
-    total_time_seconds = int(round(total_time_seconds % 60))
+    total_time_minutes = int(total_time_seconds // 60)
+    total_time_seconds = int(total_time_seconds % 60)
 
     return int(num_shoots), total_time_minutes, total_time_seconds, None
 
