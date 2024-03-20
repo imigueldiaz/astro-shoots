@@ -2,7 +2,7 @@ astroplan==0.9
 astropy==5.3.3
 astroquery==0.4.6
 beautifulsoup4==4.12.2
-black==23.7.0
+black==24.3.0
 blinker==1.6.2
 certifi==2023.7.22
 charset-normalizer==3.2.0
