@@ -56,7 +56,7 @@ tzdata==2023.3
 tzlocal==5.0.1
 urllib3==2.5.0
 webencodings==0.5.1
-Werkzeug==3.0.6
+Werkzeug==3.1.4
 wrapt==1.15.0
 WTForms==3.0.1
 zipp==3.19.1
