@@ -38,7 +38,7 @@ pathspec==0.11.2
 platformdirs==3.10.0
 pluggy==1.2.0
 pyerfa==2.0.0.3
-Pygments==2.16.1
+Pygments==2.20.0
 PyOngc==1.0.1
 pytest==7.4.0
 python-dateutil==2.8.2
