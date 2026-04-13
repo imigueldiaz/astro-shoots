@@ -40,7 +40,7 @@ pluggy==1.2.0
 pyerfa==2.0.0.3
 Pygments==2.20.0
 PyOngc==1.0.1
-pytest==7.4.0
+pytest==9.0.3
 python-dateutil==2.8.2
 python-dotenv==1.0.0
 pytz==2023.3
