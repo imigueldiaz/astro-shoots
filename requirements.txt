@@ -42,7 +42,7 @@ Pygments==2.20.0
 PyOngc==1.0.1
 pytest==9.0.3
 python-dateutil==2.8.2
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 pytz==2023.3
 pyvo==1.4.1
 pywin32-ctypes==0.2.2
